@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="시대순 성경일독"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>시대순 성경일독</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e2e8f0;font-family:'Noto Serif KR',Georgia,serif}
+
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap');
+        *{box-sizing:border-box}
+        .row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:5px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:background .15s,transform .1s}
+        .row:hover{background:rgba(255,255,255,.09)}
+        .row:active{transform:scale(.98)}
+        .row.done{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25)}
+        .chk{width:26px;height:26px;border-radius:50%;border:2px solid #475569;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:13px}
+        .chk.done{background:#10b981;border-color:#10b981;color:#fff}
+        .dcard{border-radius:14px;margin-bottom:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+        .dhead{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;background:rgba(255,255,255,.04);transition:background .15s}
+        .dhead:hover{background:rgba(255,255,255,.09)}
+        .tab{flex:1;padding:10px 2px;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;border-radius:8px;background:transparent;color:#64748b;transition:all .2s}
+        .tab.on{background:rgba(16,185,129,.2);color:#10b981}
+        .pbar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+        .pfill{height:100%;border-radius:3px;transition:width .4s ease}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect } = React;
+const PLAN = [
+    // Day 1
+    { seq: 1, day: 1, ko: "창 1장1절~25절", en: "Gen 1:1-25" },
+    { seq: 2, day: 1, ko: "창 1장26절~3장", en: "Gen 1:26-3" },
+    { seq: 3, day: 1, ko: "창 4장~5장", en: "Gen 4-5" },
+    { seq: 4, day: 1, ko: "창 6장~9장", en: "Gen 6-9" },
+    { seq: 5, day: 1, ko: "창 10장~11장", en: "Gen 10-11" },
+    { seq: 6, day: 1, ko: "창 12장1절~3절", en: "Gen 12:1-3" },
+    { seq: 7, day: 1, ko: "창 12장4절~14장", en: "Gen 12:4-14" },
+    { seq: 8, day: 1, ko: "창 15장~18장19절", en: "Gen 15-18:19" },
+    { seq: 9, day: 1, ko: "창 18장20절~19장", en: "Gen 18:20-19" },
+    // Day 2
+    { seq: 10, day: 2, ko: "창 20장~22장", en: "Gen 20-22" },
+    { seq: 11, day: 2, ko: "창 23장~26장", en: "Gen 23-26" },
+    { seq: 12, day: 2, ko: "창 27장~36장", en: "Gen 27-36" },
+    { seq: 13, day: 2, ko: "창 37장", en: "Gen 37" },
+    { seq: 14, day: 2, ko: "창 38장", en: "Gen 38" },
+    { seq: 15, day: 2, ko: "창 39장~50장", en: "Gen 39-50" },
+    // Day 3
+    { seq: 16, day: 3, ko: "출 1장~4장17절", en: "Exo 1-4:17" },
+    { seq: 17, day: 3, ko: "출 4장18절~11장", en: "Exo 4:18-11" },
+    { seq: 18, day: 3, ko: "출 12장~19장1절", en: "Exo 12-19:1" },
+    // Day 4
+    { seq: 19, day: 4, ko: "출 19장", en: "Exo 19" },
+    { seq: 20, day: 4, ko: "출 20장~23장", en: "Exo 20-23" },
+    { seq: 21, day: 4, ko: "출 24장~31장", en: "Exo 24-31" },
+    // Day 5
+    { seq: 22, day: 5, ko: "출 32장", en: "Exo 32" },
+    { seq: 23, day: 5, ko: "출 33장", en: "Exo 33" },
+    { seq: 24, day: 5, ko: "출 34장", en: "Exo 34" },
+    { seq: 25, day: 5, ko: "출 35장~40장", en: "Exo 35-40" },
+    // Day 6
+    { seq: 26, day: 6, ko: "민 9장1절~14절", en: "Num 9:1-14" },
+    { seq: 27, day: 6, ko: "민 1장~2장", en: "Num 1-2" },
+    { seq: 28, day: 6, ko: "민 3장~4장", en: "Num 3-4" },
+    { seq: 29, day: 6, ko: "민 5장~6장", en: "Num 5-6" },
+    { seq: 30, day: 6, ko: "민 7장", en: "Num 7" },
+    { seq: 31, day: 6, ko: "민 8장, 9장15절~23절", en: "Num 8, 9:15-23" },
+    { seq: 32, day: 6, ko: "민 10장1절~10절", en: "Num 10:1-10" },
+    { seq: 33, day: 6, ko: "민 10장11절~12절", en: "Num 10:11-12" },
+    { seq: 34, day: 6, ko: "민 10장13절~12장", en: "Num 10:13-12" },
+    { seq: 35, day: 6, ko: "민 13장~20장13절", en: "Num 13-20:13" },
+    { seq: 36, day: 6, ko: "민 20장14절~21장", en: "Num 20:14-21" },
+    // Day 7
+    { seq: 37, day: 7, ko: "민 22장~24장", en: "Num 22-24" },
+    { seq: 38, day: 7, ko: "민 25장", en: "Num 25" },
+    { seq: 39, day: 7, ko: "민 26장", en: "Num 26" },
+    { seq: 40, day: 7, ko: "민 27장1절~11절", en: "Num 27:1-11" },
+    { seq: 41, day: 7, ko: "민 27장12절~23절", en: "Num 27:12-23" },
+    { seq: 42, day: 7, ko: "민 28장~30장", en: "Num 28-30" },
+    { seq: 43, day: 7, ko: "민 31장", en: "Num 31" },
+    { seq: 44, day: 7, ko: "민 32장~36장", en: "Num 32-36" },
+    // Day 8
+    { seq: 45, day: 8, ko: "레 1장~7장", en: "Lev 1-7" },
+    { seq: 46, day: 8, ko: "레 8장~10장", en: "Lev 8-10" },
+    { seq: 47, day: 8, ko: "레 16장~17장", en: "Lev 16-17" },
+    { seq: 48, day: 8, ko: "레 11장~15장", en: "Lev 11-15" },
+    { seq: 49, day: 8, ko: "레 18장~20장", en: "Lev 18-20" },
+    { seq: 50, day: 8, ko: "레 21장~22장", en: "Lev 21-22" },
+    { seq: 51, day: 8, ko: "레 23장", en: "Lev 23" },
+    { seq: 52, day: 8, ko: "레 24장1절~9절", en: "Lev 24:1-9" },
+    { seq: 53, day: 8, ko: "레 24장10절~23절", en: "Lev 24:10-23" },
+    // Day 9
+    { seq: 54, day: 9, ko: "레 25장", en: "Lev 25" },
+    { seq: 55, day: 9, ko: "레 26장", en: "Lev 26" },
+    { seq: 56, day: 9, ko: "레 27장", en: "Lev 27" },
+    { seq: 57, day: 9, ko: "신 1장~3장", en: "Deu 1-3" },
+    { seq: 58, day: 9, ko: "신 4장~13장", en: "Deu 4-13" },
+    { seq: 59, day: 9, ko: "신 14장~26장", en: "Deu 14-26" },
+    { seq: 60, day: 9, ko: "신 27장~28장", en: "Deu 27-28" },
+    // Day 10
+    { seq: 61, day: 10, ko: "신 29장~30장", en: "Deu 29-30" },
+    { seq: 62, day: 10, ko: "신 31장1절~8절", en: "Deu 31:1-8" },
+    { seq: 63, day: 10, ko: "신 31장9절~13절", en: "Deu 31:9-13" },
+    { seq: 64, day: 10, ko: "신 31장14절~33장29절", en: "Deu 31:14-33:29" },
+    { seq: 65, day: 10, ko: "신 34장", en: "Deu 34" },
+    // Day 11
+    { seq: 66, day: 11, ko: "수 1장~12장", en: "Jos 1-12" },
+    { seq: 67, day: 11, ko: "수 13장~21장", en: "Jos 13-21" },
+    { seq: 68, day: 11, ko: "수 22장", en: "Jos 22" },
+    { seq: 69, day: 11, ko: "수 23장~24장", en: "Jos 23-24" },
+    { seq: 70, day: 11, ko: "삿 1장~2장10절", en: "Jdg 1-2:10" },
+    { seq: 71, day: 11, ko: "삿 2장11절~23절", en: "Jdg 2:11-23" },
+    { seq: 72, day: 11, ko: "삿 3장", en: "Jdg 3" },
+    // Day 12
+    { seq: 73, day: 12, ko: "삿 4장~5장", en: "Jdg 4-5" },
+    { seq: 74, day: 12, ko: "삿 6장~8장", en: "Jdg 6-8" },
+    { seq: 75, day: 12, ko: "삿 9장", en: "Jdg 9" },
+    { seq: 76, day: 12, ko: "삿 10장~12장", en: "Jdg 10-12" },
+    { seq: 77, day: 12, ko: "삿 13장~16장", en: "Jdg 13-16" },
+    { seq: 78, day: 12, ko: "삿 17장~18장", en: "Jdg 17-18" },
+    { seq: 79, day: 12, ko: "삿 19장~21장", en: "Jdg 19-21" },
+    // Day 13
+    { seq: 80, day: 13, ko: "룻 1장~4장", en: "Rut 1-4" },
+    { seq: 81, day: 13, ko: "삼상 1장~3장", en: "1Sa 1-3" },
+    { seq: 82, day: 13, ko: "삼상 4장~8장", en: "1Sa 4-8" },
+    { seq: 83, day: 13, ko: "삼상 9장~12장", en: "1Sa 9-12" },
+    { seq: 84, day: 13, ko: "삼상 13장~15장", en: "1Sa 13-15" },
+    // Day 14
+    { seq: 85, day: 14, ko: "삼상 16장1절~13절", en: "1Sa 16:1-13" },
+    { seq: 86, day: 14, ko: "삼상 16장14절~18장7절", en: "1Sa 16:14-18:7" },
+    { seq: 87, day: 14, ko: "삼상 18장8절~20장, 시 59편", en: "1Sa 18:8-20, Ps 59" },
+    // Day 15
+    { seq: 88, day: 15, ko: "시 1편~2편, 4편~6편, 8편~17편", en: "Ps 1-2, 4-6, 8-17" },
+    { seq: 89, day: 15, ko: "삼상 21장, 시 34편, 시 56편", en: "1Sa 21, Ps 34, 56" },
+    { seq: 90, day: 15, ko: "삼상 22장, 시 52편, 57편", en: "1Sa 22, Ps 52, 57" },
+    { seq: 91, day: 15, ko: "삼상 23장, 시 54편", en: "1Sa 23, Ps 54" },
+    { seq: 92, day: 15, ko: "삼상 24장, 시 63편, 시 142편", en: "1Sa 24, Ps 63, 142" },
+    { seq: 93, day: 15, ko: "삼상 25장~31장", en: "1Sa 25-31" },
+    // Day 16
+    { seq: 94, day: 16, ko: "시 7편", en: "Ps 7" },
+    { seq: 95, day: 16, ko: "삼하 1장~2장11절", en: "2Sa 1-2:11" },
+    { seq: 96, day: 16, ko: "시 19편~30편", en: "Ps 19-30" },
+    { seq: 97, day: 16, ko: "삼하 2장12절~5장5절", en: "2Sa 2:12-5:5" },
+    { seq: 98, day: 16, ko: "삼하 5장6절~25절", en: "2Sa 5:6-25" },
+    { seq: 99, day: 16, ko: "시 31편~41편", en: "Ps 31-41" },
+    { seq: 100, day: 16, ko: "삼하 6장", en: "2Sa 6" },
+    { seq: 101, day: 16, ko: "삼하 7장", en: "2Sa 7" },
+    // Day 17
+    { seq: 102, day: 17, ko: "시 42편~50편", en: "Ps 42-50" },
+    { seq: 103, day: 17, ko: "삼하 8장~12장, 시 60편, 시 51편", en: "2Sa 8-12, Ps 60, 51" },
+    { seq: 104, day: 17, ko: "삼하 13장~19장", en: "2Sa 13-19" },
+    { seq: 105, day: 17, ko: "시 3편", en: "Ps 3" },
+    // Day 18
+    { seq: 106, day: 18, ko: "삼하 20장", en: "2Sa 20" },
+    { seq: 107, day: 18, ko: "삼하 21장~24장, 시 18편", en: "2Sa 21-24, Ps 18" },
+    { seq: 108, day: 18, ko: "시 53편, 55편, 58편, 61편~62편, 64편~71편", en: "Ps 53,55,58,61-62,64-71" },
+    // Day 19
+    { seq: 109, day: 19, ko: "왕상 1장~2장", en: "1Ki 1-2" },
+    { seq: 110, day: 19, ko: "왕상 3장~4장", en: "1Ki 3-4" },
+    { seq: 111, day: 19, ko: "왕상 5장~6장", en: "1Ki 5-6" },
+    { seq: 112, day: 19, ko: "시 72편", en: "Ps 72" },
+    { seq: 113, day: 19, ko: "잠 1장~15장", en: "Pro 1-15" },
+    // Day 20
+    { seq: 114, day: 20, ko: "왕상 7장~11장", en: "1Ki 7-11" },
+    { seq: 115, day: 20, ko: "잠 16장~31장", en: "Pro 16-31" },
+    // Day 21
+    { seq: 116, day: 21, ko: "전 1장~12장", en: "Ecc 1-12" },
+    { seq: 117, day: 21, ko: "아 1장~8장", en: "Sol 1-8" },
+    // Day 22
+    { seq: 118, day: 22, ko: "왕상 12장~14장", en: "1Ki 12-14" },
+    { seq: 119, day: 22, ko: "왕상 15장~16장28절", en: "1Ki 15-16:28" },
+    { seq: 120, day: 22, ko: "왕상 16장29절~34절", en: "1Ki 16:29-34" },
+    // Day 23
+    { seq: 121, day: 23, ko: "왕상 17장", en: "1Ki 17" },
+    { seq: 122, day: 23, ko: "왕상 18장", en: "1Ki 18" },
+    { seq: 123, day: 23, ko: "왕상 19장", en: "1Ki 19" },
+    { seq: 124, day: 23, ko: "왕상 20~22장", en: "1Ki 20-22" },
+    // Day 24
+    { seq: 125, day: 24, ko: "왕하 1장~2장", en: "2Ki 1-2" },
+    { seq: 126, day: 24, ko: "왕하 3장~8장19절", en: "2Ki 3-8:19" },
+    { seq: 127, day: 24, ko: "왕하 8장20절~24절", en: "2Ki 8:20-24" },
+    { seq: 128, day: 24, ko: "욥 1장", en: "Job 1" },
+    { seq: 129, day: 24, ko: "왕하 8장25절~10장", en: "2Ki 8:25-10" },
+    { seq: 130, day: 24, ko: "왕하 11장~13장", en: "2Ki 11-13" },
+    // Day 25
+    { seq: 131, day: 25, ko: "욜 1장~3장", en: "Joe 1-3" },
+    { seq: 132, day: 25, ko: "왕하 14장", en: "2Ki 14" },
+    { seq: 133, day: 25, ko: "호 1장~3장5절", en: "Hos 1-3:5" },
+    { seq: 134, day: 25, ko: "호 4장~14장", en: "Hos 4-14" },
+    { seq: 135, day: 25, ko: "암 1장~9장", en: "Amo 1-9" },
+    { seq: 136, day: 25, ko: "온 1장~4장", en: "Jon 1-4" },
+    { seq: 137, day: 25, ko: "왕하 15장1절~12절", en: "2Ki 15:1-12" },
+    { seq: 138, day: 25, ko: "왕하 15장13절~17장", en: "2Ki 15:13-17" },
+    // Day 26
+    { seq: 139, day: 26, ko: "왕하 18장~20장", en: "2Ki 18-20" },
+    { seq: 140, day: 26, ko: "사 1장~23장", en: "Isa 1-23" },
+    { seq: 141, day: 26, ko: "사 24장~35장", en: "Isa 24-35" },
+    // Day 27
+    { seq: 142, day: 27, ko: "사 36장~39장", en: "Isa 36-39" },
+    { seq: 143, day: 27, ko: "미 1장~2장", en: "Mic 1-2" },
+    { seq: 144, day: 27, ko: "미 3장~5장", en: "Mic 3-5" },
+    { seq: 145, day: 27, ko: "미 6장~7장", en: "Mic 6-7" },
+    // Day 28
+    { seq: 146, day: 28, ko: "왕하 21장1절~18절", en: "2Ki 21:1-18" },
+    { seq: 147, day: 28, ko: "사 40장~54장", en: "Isa 40-54" },
+    { seq: 148, day: 28, ko: "사 55장~66장", en: "Isa 55-66" },
+    // Day 29
+    { seq: 149, day: 29, ko: "왕하 21장19절~23장30절", en: "2Ki 21:19-23:30" },
+    { seq: 150, day: 29, ko: "나 1장~3장", en: "Nah 1-3" },
+    // Day 30
+    { seq: 151, day: 30, ko: "습 1장~3장", en: "Zep 1-3" },
+    { seq: 152, day: 30, ko: "왕하 23장31절~34절", en: "2Ki 23:31-34" },
+    { seq: 153, day: 30, ko: "렘 1장~6장", en: "Jer 1-6" },
+    { seq: 154, day: 30, ko: "렘 11장~12장", en: "Jer 11-12" },
+    { seq: 155, day: 30, ko: "렘 7장~10장", en: "Jer 7-10" },
+    { seq: 156, day: 30, ko: "왕하 23장31절~34절", en: "2Ki 23:31-34" },
+    { seq: 157, day: 30, ko: "렘 21장11절~22장19절", en: "Jer 21:11-22:19" },
+    { seq: 158, day: 30, ko: "렘 23장~24장35절", en: "Jer 23-24:35" },
+    // Day 31
+    { seq: 159, day: 31, ko: "렘 14장~20장", en: "Jer 14-20" },
+    { seq: 160, day: 31, ko: "렘 26장~35장", en: "Jer 26-35" },
+    { seq: 161, day: 31, ko: "렘 46장~51장58절", en: "Jer 46-51:58" },
+    { seq: 162, day: 31, ko: "렘 36장", en: "Jer 36" },
+    { seq: 163, day: 31, ko: "렘 45장", en: "Jer 45" },
+    { seq: 164, day: 31, ko: "렘 25장", en: "Jer 25" },
+    // Day 32
+    { seq: 165, day: 32, ko: "렘 13장", en: "Jer 13" },
+    { seq: 166, day: 32, ko: "렘 18장~20장", en: "Jer 18-20" },
+    { seq: 167, day: 32, ko: "렘 21장1절~10절", en: "Jer 21:1-10" },
+    { seq: 168, day: 32, ko: "렘 22장20절~30절", en: "Jer 22:20-30" },
+    { seq: 169, day: 32, ko: "렘 23장", en: "Jer 23" },
+    { seq: 170, day: 32, ko: "렘 24장", en: "Jer 24" },
+    { seq: 171, day: 32, ko: "렘 49장34절~39절", en: "Jer 49:34-39" },
+    { seq: 172, day: 32, ko: "렘 29장~31장", en: "Jer 29-31" },
+    { seq: 173, day: 32, ko: "렘 29장~31절", en: "Jer 29-31" },
+    // Day 33
+    { seq: 174, day: 33, ko: "렘 27장", en: "Jer 27" },
+    { seq: 175, day: 33, ko: "렘 28장", en: "Jer 28" },
+    { seq: 176, day: 33, ko: "렘 49장34절~39절", en: "Jer 49:34-39" },
+    { seq: 177, day: 33, ko: "렘 50장~51장58절", en: "Jer 50-51:58" },
+    { seq: 178, day: 33, ko: "렘 51장59절~64절", en: "Jer 51:59-64" },
+    { seq: 179, day: 33, ko: "렘 37장~38장, 렘 21장1절~10절", en: "Jer 37-38, 21:1-10" },
+    { seq: 180, day: 33, ko: "렘 32장~34장", en: "Jer 32-34" },
+    { seq: 181, day: 33, ko: "렘 39장, 52장", en: "Jer 39, 52" },
+    { seq: 182, day: 33, ko: "렘 40장~44장", en: "Jer 40-44" },
+    { seq: 183, day: 33, ko: "애 1장~5장", en: "Lam 1-5" },
+    { seq: 184, day: 33, ko: "단 1장~3장", en: "Dan 1-3" },
+    // Day 34
+    { seq: 185, day: 34, ko: "단 4장", en: "Dan 4" },
+    { seq: 186, day: 34, ko: "단 5장", en: "Dan 5" },
+    { seq: 187, day: 34, ko: "단 6장", en: "Dan 6" },
+    { seq: 188, day: 34, ko: "단 7장~9장", en: "Dan 7-9" },
+    { seq: 189, day: 34, ko: "단 10장~12장", en: "Dan 10-12" },
+    { seq: 190, day: 34, ko: "겔 1장", en: "Eze 1" },
+    { seq: 191, day: 34, ko: "겔 2장~3장", en: "Eze 2-3" },
+    { seq: 192, day: 34, ko: "겔 4장~7장", en: "Eze 4-7" },
+    // Day 35
+    { seq: 193, day: 35, ko: "겔 8장~11장21절", en: "Eze 8-11:21" },
+    { seq: 194, day: 35, ko: "겔 11장22절~25절", en: "Eze 11:22-25" },
+    { seq: 195, day: 35, ko: "겔 12장~13장", en: "Eze 12-13" },
+    { seq: 196, day: 35, ko: "겔 14장~18장", en: "Eze 14-18" },
+    { seq: 197, day: 35, ko: "겔 19장", en: "Eze 19" },
+    { seq: 198, day: 35, ko: "겔 20장~23장", en: "Eze 20-23" },
+    { seq: 199, day: 35, ko: "겔 24장", en: "Eze 24" },
+    { seq: 200, day: 35, ko: "겔 25장~28장", en: "Eze 25-28" },
+    { seq: 201, day: 35, ko: "겔 29장~32장", en: "Eze 29-32" },
+    { seq: 202, day: 35, ko: "겔 33장~39장", en: "Eze 33-39" },
+    // Day 36
+    { seq: 203, day: 36, ko: "겔 40장~48장", en: "Eze 40-48" },
+    // Day 37
+    { seq: 204, day: 37, ko: "대상 1장~9장", en: "1Ch 1-9" },
+    { seq: 205, day: 37, ko: "대상 10장", en: "1Ch 10" },
+    { seq: 206, day: 37, ko: "대상 11장~14장", en: "1Ch 11-14" },
+    { seq: 207, day: 37, ko: "대상 15장~16장", en: "1Ch 15-16" },
+    // Day 38
+    { seq: 208, day: 38, ko: "시 105편", en: "Ps 105" },
+    { seq: 209, day: 38, ko: "시 73편~83편", en: "Ps 73-83" },
+    { seq: 210, day: 38, ko: "시 84편~88편", en: "Ps 84-88" },
+    { seq: 211, day: 38, ko: "시 89편", en: "Ps 89" },
+    // Day 39
+    { seq: 212, day: 39, ko: "대상 17장~22장1절", en: "1Ch 17-22:1" },
+    { seq: 213, day: 39, ko: "시 90편~104편, 시 106편", en: "Ps 90-104, 106" },
+    // Day 40
+    { seq: 214, day: 40, ko: "대상 22장2절~26장", en: "1Ch 22:2-26" },
+    { seq: 215, day: 40, ko: "시 107편~134편", en: "Ps 107-134" },
+    // Day 41
+    { seq: 216, day: 41, ko: "대상 27장~29장", en: "1Ch 27-29" },
+    { seq: 217, day: 41, ko: "시 135편~150편", en: "Ps 135-150" },
+    // Day 42
+    { seq: 218, day: 42, ko: "대하 1장~9장", en: "2Ch 1-9" },
+    { seq: 219, day: 42, ko: "대하 10장~12장", en: "2Ch 10-12" },
+    { seq: 220, day: 42, ko: "대하 13장~20장", en: "2Ch 13-20" },
+    // Day 43
+    { seq: 221, day: 43, ko: "대하 21장~36장21절", en: "2Ch 21-36:21" },
+    { seq: 222, day: 43, ko: "대하 36장22절~23절", en: "2Ch 36:22-23" },
+    { seq: 223, day: 43, ko: "라 1장1절~4절", en: "Ezr 1:1-4" },
+    // Day 44
+    { seq: 224, day: 44, ko: "라 1장5절~2장", en: "Ezr 1:5-2" },
+    { seq: 225, day: 44, ko: "라 3장~4장", en: "Ezr 3-4" },
+    { seq: 226, day: 44, ko: "라 5장~6장", en: "Ezr 5-6" },
+    { seq: 227, day: 44, ko: "학 1장~2장", en: "Hag 1-2" },
+    { seq: 228, day: 44, ko: "슥 1장~8장", en: "Zec 1-8" },
+    { seq: 229, day: 44, ko: "슥 9장~14장", en: "Zec 9-14" },
+    // Day 45
+    { seq: 230, day: 45, ko: "더 1장~2장", en: "Est 1-2" },
+    { seq: 231, day: 45, ko: "더 3장", en: "Est 3" },
+    { seq: 232, day: 45, ko: "더 4장", en: "Est 4" },
+    { seq: 233, day: 45, ko: "더 5장~7장", en: "Est 5-7" },
+    { seq: 234, day: 45, ko: "더 8장~10장", en: "Est 8-10" },
+    { seq: 235, day: 45, ko: "라 7장1절~10절", en: "Ezr 7:1-10" },
+    { seq: 236, day: 45, ko: "라 7장11절~28절", en: "Ezr 7:11-28" },
+    { seq: 237, day: 45, ko: "라 8장1절~14절", en: "Ezr 8:1-14" },
+    { seq: 238, day: 45, ko: "라 8장15절~20절", en: "Ezr 8:15-20" },
+    { seq: 239, day: 45, ko: "라 8장21절~23절", en: "Ezr 8:21-23" },
+    { seq: 240, day: 45, ko: "라 8장24절~30절", en: "Ezr 8:24-30" },
+    { seq: 241, day: 45, ko: "라 8장31절~36절", en: "Ezr 8:31-36" },
+    // Day 46
+    { seq: 242, day: 46, ko: "라 9장~10장", en: "Ezr 9-10" },
+    { seq: 243, day: 46, ko: "느 1장", en: "Neh 1" },
+    { seq: 244, day: 46, ko: "느 2장1절~10절", en: "Neh 2:1-10" },
+    { seq: 245, day: 46, ko: "느 2장11절~6장19절", en: "Neh 2:11-6:19" },
+    { seq: 246, day: 46, ko: "느 7장~12장", en: "Neh 7-12" },
+    { seq: 247, day: 46, ko: "느 13장", en: "Neh 13" },
+    { seq: 248, day: 46, ko: "말 1장~2장", en: "Mal 1-2" },
+    { seq: 249, day: 46, ko: "말 3장", en: "Mal 3" },
+    { seq: 250, day: 46, ko: "말 4장", en: "Mal 4" },
+    // Day 47
+    { seq: 251, day: 47, ko: "욥 1장~2장", en: "Job 1-2" },
+    { seq: 252, day: 47, ko: "욥 3장~14장", en: "Job 3-14" },
+    { seq: 253, day: 47, ko: "욥 15장~21장", en: "Job 15-21" },
+    { seq: 254, day: 47, ko: "욥 22장~31장", en: "Job 22-31" },
+    // Day 48
+    { seq: 255, day: 48, ko: "욥 32장~37장", en: "Job 32-37" },
+    { seq: 256, day: 48, ko: "욥 38장~42장6절", en: "Job 38-42:6" },
+    { seq: 257, day: 48, ko: "욥 42장7절~17절", en: "Job 42:7-17" },
+    // \u{2500}\u{2500} 신약 \u{2500}\u{2500}
+    // Day 49
+    { seq: 258, day: 49, ko: "눅 1장1절~4절", en: "Luk 1:1-4" },
+    { seq: 259, day: 49, ko: "눅 1장5절~25절", en: "Luk 1:5-25" },
+    { seq: 260, day: 49, ko: "눅 1장26절~38절", en: "Luk 1:26-38" },
+    { seq: 261, day: 49, ko: "마 1장18절~25절", en: "Mat 1:18-25" },
+    { seq: 262, day: 49, ko: "눅 1장39절~56절", en: "Luk 1:39-56" },
+    { seq: 263, day: 49, ko: "눅 1장57절~80절", en: "Luk 1:57-80" },
+    { seq: 264, day: 49, ko: "눅 2장1절~7절", en: "Luk 2:1-7" },
+    { seq: 265, day: 49, ko: "마 1장1절~17절, 눅 3장23b절~38절", en: "Mat 1:1-17, Luk 3:23b-38" },
+    { seq: 266, day: 49, ko: "눅 2장8절~38절", en: "Luk 2:8-38" },
+    { seq: 267, day: 49, ko: "마 2장", en: "Mat 2" },
+    { seq: 268, day: 49, ko: "눅 2장39절~40절", en: "Luk 2:39-40" },
+    { seq: 269, day: 49, ko: "눅 2장41절~52절", en: "Luk 2:41-52" },
+    { seq: 270, day: 49, ko: "눅 3장1절~18절, 마 3장1절~12절, 막 1장1절~8절, 요 1장1절~28절", en: "Luk 3:1-18, Mat 3:1-12, Mrk 1:1-8, Joh 1:1-28" },
+    { seq: 271, day: 49, ko: "눅 3장21절~23a절, 마 3장13절~17절, 막 1장9절~11절", en: "Luk 3:21-23a, Mat 3:13-17, Mrk 1:9-11" },
+    { seq: 272, day: 49, ko: "눅 4장1절~13절, 마 4장1절~11절, 막 1장12절~13절", en: "Luk 4:1-13, Mat 4:1-11, Mrk 1:12-13" },
+    { seq: 273, day: 49, ko: "요 1장29절~51절", en: "Joh 1:29-51" },
+    { seq: 274, day: 49, ko: "요 2장1절~11절", en: "Joh 2:1-11" },
+    { seq: 275, day: 49, ko: "요 2장12절", en: "Joh 2:12" },
+    { seq: 276, day: 49, ko: "요 2장13절~22절", en: "Joh 2:13-22" },
+    { seq: 277, day: 49, ko: "요 2장23절~25절", en: "Joh 2:23-25" },
+    { seq: 278, day: 49, ko: "요 3장1절~15절", en: "Joh 3:1-15" },
+    { seq: 279, day: 49, ko: "요 3장16절~21절", en: "Joh 3:16-21" },
+    { seq: 280, day: 49, ko: "요 3장22절~30절", en: "Joh 3:22-30" },
+    { seq: 281, day: 49, ko: "요 3장31절~36절", en: "Joh 3:31-36" },
+    { seq: 282, day: 49, ko: "요 4장1절~2절", en: "Joh 4:1-2" },
+    { seq: 283, day: 49, ko: "눅 3장19절~20절, 마 4장12a절, 막 1장14a절", en: "Luk 3:19-20, Mat 4:12a, Mrk 1:14a" },
+    { seq: 284, day: 49, ko: "요 4장3절, 마 4장12b절, 막 1장14b절", en: "Joh 4:3, Mat 4:12b, Mrk 1:14b" },
+    { seq: 285, day: 49, ko: "요 4장4절~42절", en: "Joh 4:4-42" },
+    { seq: 286, day: 49, ko: "요 4장43절~45절", en: "Joh 4:43-45" },
+    { seq: 287, day: 49, ko: "요 4장46절~54절", en: "Joh 4:46-54" },
+    { seq: 288, day: 49, ko: "눅 4장14절~30절", en: "Luk 4:14-30" },
+    { seq: 289, day: 49, ko: "마 4장13절~17절, 막 1장14b절~15절", en: "Mat 4:13-17, Mrk 1:14b-15" },
+    { seq: 290, day: 49, ko: "눅 5장1절~11절, 마 4장18절~22절, 막 1장16절~20절", en: "Luk 5:1-11, Mat 4:18-22, Mrk 1:16-20" },
+    { seq: 291, day: 49, ko: "눅 4장31절~41절, 마 8장14절~17절, 막 1장21절~34절", en: "Luk 4:31-41, Mat 8:14-17, Mrk 1:21-34" },
+    { seq: 292, day: 49, ko: "눅 4장42절~44절, 마 4장23절~25절, 막 1장35절~39절", en: "Luk 4:42-44, Mat 4:23-25, Mrk 1:35-39" },
+    { seq: 293, day: 49, ko: "눅 5장17절~32절, 마 9장1절~13절, 막 2장1절~17절", en: "Luk 5:17-32, Mat 9:1-13, Mrk 2:1-17" },
+    { seq: 294, day: 49, ko: "눅 5장33절~39절, 마 9장14절~17절, 막 2장18절~22절", en: "Luk 5:33-39, Mat 9:14-17, Mrk 2:18-22" },
+    { seq: 295, day: 49, ko: "요 5장1절~18절", en: "Joh 5:1-18" },
+    { seq: 296, day: 49, ko: "요 5장19절~30절", en: "Joh 5:19-30" },
+    { seq: 297, day: 49, ko: "요 5장31절~47절", en: "Joh 5:31-47" },
+    // Day 50
+    { seq: 298, day: 50, ko: "눅 6장1절~11절, 마 12장1절~21절, 막 2장23절~3장6절", en: "Luk 6:1-11, Mat 12:1-21, Mrk 2:23-3:6" },
+    { seq: 299, day: 50, ko: "눅 6장12절~19절, 막 3장7절~19절", en: "Luk 6:12-19, Mrk 3:7-19" },
+    { seq: 300, day: 50, ko: "눅 6장20절~49절, 마 5장~7장", en: "Luk 6:20-49, Mat 5-7" },
+    { seq: 301, day: 50, ko: "눅 5장12절~16절, 눅 7장1절~10절, 마 8장1절~13절, 막 1장40절~45절", en: "Luk 5:12-16, 7:1-10, Mat 8:1-13, Mrk 1:40-45" },
+    { seq: 302, day: 50, ko: "눅 7장11절~17절", en: "Luk 7:11-17" },
+    { seq: 303, day: 50, ko: "눅 7장18절~35절, 마 11장2절~19절", en: "Luk 7:18-35, Mat 11:2-19" },
+    { seq: 304, day: 50, ko: "마 11장20절~30절", en: "Mat 11:20-30" },
+    { seq: 305, day: 50, ko: "눅 7장36절~50절", en: "Luk 7:36-50" },
+    { seq: 306, day: 50, ko: "마 12장22절~37절, 막 3장20절~30절, 눅 11장14절~28절", en: "Mat 12:22-37, Mrk 3:20-30, Luk 11:14-28" },
+    { seq: 307, day: 50, ko: "마 12장38절~45절, 눅 11장29절~36절", en: "Mat 12:38-45, Luk 11:29-36" },
+    { seq: 308, day: 50, ko: "눅 11장37절~54절", en: "Luk 11:37-54" },
+    { seq: 309, day: 50, ko: "눅 8장1절~3절", en: "Luk 8:1-3" },
+    { seq: 310, day: 50, ko: "마 13장1절~52절, 막 4장1절~34절, 눅 12장~13장9절", en: "Mat 13:1-52, Mrk 4:1-34, Luk 12-13:9" },
+    { seq: 311, day: 50, ko: "마 12장46절~50절, 막 3장31절~35절, 눅 8장19절~21절", en: "Mat 12:46-50, Mrk 3:31-35, Luk 8:19-21" },
+    // Day 51
+    { seq: 312, day: 51, ko: "막 4장35절~5장20절, 마 8장23절~34절, 눅 8장22절~39절", en: "Mrk 4:35-5:20, Mat 8:23-34, Luk 8:22-39" },
+    { seq: 313, day: 51, ko: "막 5장21절~43절, 마 9장18절~26절, 눅 8장40절~56절", en: "Mrk 5:21-43, Mat 9:18-26, Luk 8:40-56" },
+    { seq: 314, day: 51, ko: "마 9장27절~34절", en: "Mat 9:27-34" },
+    { seq: 315, day: 51, ko: "막 6장1절~6a절, 마 13장54절~58절", en: "Mrk 6:1-6a, Mat 13:54-58" },
+    { seq: 316, day: 51, ko: "마 9장35절~11장1절, 막 6장6b절~13절, 눅 9장1절~6절", en: "Mat 9:35-11:1, Mrk 6:6b-13, Luk 9:1-6" },
+    { seq: 317, day: 51, ko: "막 6장14절~29절, 마 14장1절~12절, 눅 9장7절~9절", en: "Mrk 6:14-29, Mat 14:1-12, Luk 9:7-9" },
+    { seq: 318, day: 51, ko: "막 6장30절, 눅 9장10절~11절", en: "Mrk 6:30, Luk 9:10-11" },
+    { seq: 319, day: 51, ko: "막 6장31절~44절, 마 14장13절~21절, 눅 9장12절~17절, 요 6장1절~15절", en: "Mrk 6:31-44, Mat 14:13-21, Luk 9:12-17, Joh 6:1-15" },
+    { seq: 320, day: 51, ko: "요 6장16절~71절, 마 14장22절~36절, 막 6장45절~56절", en: "Joh 6:16-71, Mat 14:22-36, Mrk 6:45-56" },
+    { seq: 321, day: 51, ko: "마 15장1절~20절, 막 7장1절~23절", en: "Mat 15:1-20, Mrk 7:1-23" },
+    { seq: 322, day: 51, ko: "마 15장21절~28절, 막 7장24절~30절", en: "Mat 15:21-28, Mrk 7:24-30" },
+    { seq: 323, day: 51, ko: "막 7장31절~37절, 마 15장29절~31절", en: "Mrk 7:31-37, Mat 15:29-31" },
+    { seq: 324, day: 51, ko: "마 15장32절~39절, 막 8장1절~10절", en: "Mat 15:32-39, Mrk 8:1-10" },
+    { seq: 325, day: 51, ko: "마 16장1절~12절, 막 8장11절~26절", en: "Mat 16:1-12, Mrk 8:11-26" },
+    { seq: 326, day: 51, ko: "마 16장13절~28절, 막 8장27절~9장1절, 눅 9장18절~27절", en: "Mat 16:13-28, Mrk 8:27-9:1, Luk 9:18-27" },
+    { seq: 327, day: 51, ko: "마 17장1절~13절, 막 9장2절~13절, 눅 9장28절~36절", en: "Mat 17:1-13, Mrk 9:2-13, Luk 9:28-36" },
+    { seq: 328, day: 51, ko: "막 9장14절~29절, 마 17장14절~21절, 눅 9장37절~43a절", en: "Mrk 9:14-29, Mat 17:14-21, Luk 9:37-43a" },
+    { seq: 329, day: 51, ko: "막 9장30절~32절, 마 17장22절~23절, 눅 9장43b절~45절", en: "Mrk 9:30-32, Mat 17:22-23, Luk 9:43b-45" },
+    { seq: 330, day: 51, ko: "마 17장24절~27절", en: "Mat 17:24-27" },
+    { seq: 331, day: 51, ko: "마 18장, 막 9장33절~50절, 눅 9장46절~50절, 눅 17장1절~10절", en: "Mat 18, Mrk 9:33-50, Luk 9:46-50, 17:1-10" },
+    { seq: 332, day: 51, ko: "요 7장1절~10절", en: "Joh 7:1-10" },
+    { seq: 333, day: 51, ko: "눅 9장51절~56절", en: "Luk 9:51-56" },
+    { seq: 334, day: 51, ko: "눅 9장57절~62절", en: "Luk 9:57-62" },
+    { seq: 335, day: 51, ko: "눅 9장57절~10장16절, 마 8장19절~22절", en: "Luk 9:57-10:16, Mat 8:19-22" },
+    { seq: 336, day: 51, ko: "눅 10장17절~24절", en: "Luk 10:17-24" },
+    { seq: 337, day: 51, ko: "눅 10장25절~37절", en: "Luk 10:25-37" },
+    { seq: 338, day: 51, ko: "눅 10장38절~42절", en: "Luk 10:38-42" },
+    { seq: 339, day: 51, ko: "눅 11장1절~13절", en: "Luk 11:1-13" },
+    { seq: 340, day: 51, ko: "눅 11장1절~13절", en: "Luk 11:1-13" },
+    { seq: 341, day: 51, ko: "요 9장", en: "Joh 9" },
+    { seq: 342, day: 51, ko: "요 10장1절~21절", en: "Joh 10:1-21" },
+    { seq: 343, day: 51, ko: "요 10장22절~42절", en: "Joh 10:22-42" },
+    { seq: 344, day: 51, ko: "요 11장1절~44절", en: "Joh 11:1-44" },
+    { seq: 345, day: 51, ko: "요 11장45절~53절", en: "Joh 11:45-53" },
+    { seq: 346, day: 51, ko: "요 11장54절~57절", en: "Joh 11:54-57" },
+    { seq: 347, day: 51, ko: "마 19장~20장16절, 눅 13장10절~18장30절, 막 10장1절~31절", en: "Mat 19-20:16, Luk 13:10-18:30, Mrk 10:1-31" },
+    { seq: 348, day: 51, ko: "마 20장17절~28절, 막 10장32절~45절, 눅 18장31절~34절", en: "Mat 20:17-28, Mrk 10:32-45, Luk 18:31-34" },
+    { seq: 349, day: 51, ko: "마 20장29절~34절, 눅 18장35절~19장27절, 막 10장46절~52절", en: "Mat 20:29-34, Luk 18:35-19:27, Mrk 10:46-52" },
+    { seq: 350, day: 51, ko: "요 12장1절~11절, 마 26장6절~13절, 막 14장3절~9절", en: "Joh 12:1-11, Mat 26:6-13, Mrk 14:3-9" },
+    { seq: 351, day: 51, ko: "눅 19장28절~44절, 막 11장1절~11절, 마 21장1절~11절, 요 12장12절~19절", en: "Luk 19:28-44, Mrk 11:1-11, Mat 21:1-11, Joh 12:12-19" },
+    { seq: 352, day: 51, ko: "막 11장12절~25절, 마 21장12절~22절, 눅 19장45절~48절", en: "Mrk 11:12-25, Mat 21:12-22, Luk 19:45-48" },
+    { seq: 353, day: 51, ko: "마 21장23절~23장39절, 막 11장27절~12장44절, 눅 20장~21장4절", en: "Mat 21:23-23:39, Mrk 11:27-12:44, Luk 20-21:4" },
+    { seq: 354, day: 51, ko: "마 24장~25장, 막 13장, 눅 17장20절~37절, 눅 21장5절~38절", en: "Mat 24-25, Mrk 13, Luk 17:20-37, 21:5-38" },
+    { seq: 355, day: 51, ko: "요 12장20절~50절", en: "Joh 12:20-50" },
+    { seq: 356, day: 51, ko: "마 26장1절~5절, 14절~16절, 막 14장1절~2절, 10절~11절, 눅 22장1절~6절", en: "Mat 26:1-5, 14-16, Mrk 14:1-2, 10-11, Luk 22:1-6" },
+    { seq: 357, day: 51, ko: "요 13장1절~30절, 마 26장17절~29절, 막 14장12절~25절, 눅 22장7절~30절", en: "Joh 13:1-30, Mat 26:17-29, Mrk 14:12-25, Luk 22:7-30" },
+    { seq: 358, day: 51, ko: "요 13장31절~14장31절", en: "Joh 13:31-14:31" },
+    { seq: 359, day: 51, ko: "요 15장~16장", en: "Joh 15-16" },
+    { seq: 360, day: 51, ko: "요 17장", en: "Joh 17" },
+    { seq: 361, day: 51, ko: "눅 22장31절~38절, 마 26장30절~35절, 막 14장26절~31절", en: "Luk 22:31-38, Mat 26:30-35, Mrk 14:26-31" },
+    { seq: 362, day: 51, ko: "마 26장36절~56절, 막 14장32절~52절, 눅 22장39절~53절, 요 18장1절~12절", en: "Mat 26:36-56, Mrk 14:32-52, Luk 22:39-53, Joh 18:1-12" },
+    { seq: 363, day: 51, ko: "마 26장57절~27장2절, 눅 22장54절~71절, 막 14장53절~72절, 요 18장13절~27절", en: "Mat 26:57-27:2, Luk 22:54-71, Mrk 14:53-72, Joh 18:13-27" },
+    { seq: 364, day: 51, ko: "마 27장3절~10절", en: "Mat 27:3-10" },
+    // Day 52
+    { seq: 365, day: 52, ko: "눅 23장, 막 15장, 마 27장11절~66절, 요 18장28절~19장42절", en: "Luk 23, Mrk 15, Mat 27:11-66, Joh 18:28-19:42" },
+    { seq: 366, day: 52, ko: "요 20장, 눅 24장1절~49절, 막 16장1절~18절, 마 28장1절~15절", en: "Joh 20, Luk 24:1-49, Mrk 16:1-18, Mat 28:1-15" },
+    { seq: 367, day: 52, ko: "요 21장", en: "Joh 21" },
+    { seq: 368, day: 52, ko: "행 1장1절~11절, 마 28장16절~20절, 막 16장19절~20절, 눅 24장50절~53절", en: "Act 1:1-11, Mat 28:16-20, Mrk 16:19-20, Luk 24:50-53" },
+    { seq: 369, day: 52, ko: "행 1장12절~26절", en: "Act 1:12-26" },
+    { seq: 370, day: 52, ko: "행 2장", en: "Act 2" },
+    { seq: 371, day: 52, ko: "행 3장~4장31절", en: "Act 3-4:31" },
+    { seq: 372, day: 52, ko: "행 4장32절~5장11절", en: "Act 4:32-5:11" },
+    { seq: 373, day: 52, ko: "행 5장12절~42절", en: "Act 5:12-42" },
+    { seq: 374, day: 52, ko: "행 6장1절~7절", en: "Act 6:1-7" },
+    { seq: 375, day: 52, ko: "행 6장8절~15절", en: "Act 6:8-15" },
+    { seq: 376, day: 52, ko: "행 7장", en: "Act 7" },
+    { seq: 377, day: 52, ko: "행 8장~11장26절", en: "Act 8-11:26" },
+    { seq: 378, day: 52, ko: "행 11장27절~30절", en: "Act 11:27-30" },
+    { seq: 379, day: 52, ko: "행 12장1절~23절", en: "Act 12:1-23" },
+    { seq: 380, day: 52, ko: "행 12장20절~23절", en: "Act 12:20-23" },
+    { seq: 381, day: 52, ko: "행 12장24절~25절", en: "Act 12:24-25" },
+    { seq: 382, day: 52, ko: "행 13장1절~3절", en: "Act 13:1-3" },
+    { seq: 383, day: 52, ko: "행 13장4절~12절", en: "Act 13:4-12" },
+    { seq: 384, day: 52, ko: "행 13장13절~52절", en: "Act 13:13-52" },
+    { seq: 385, day: 52, ko: "행 14장1절~20절", en: "Act 14:1-20" },
+    { seq: 386, day: 52, ko: "행 14장21절~23절", en: "Act 14:21-23" },
+    { seq: 387, day: 52, ko: "행 14장24절~28절", en: "Act 14:24-28" },
+    { seq: 388, day: 52, ko: "행 15장1절~35절", en: "Act 15:1-35" },
+    { seq: 389, day: 52, ko: "갈 2장11절~14절", en: "Gal 2:11-14" },
+    { seq: 390, day: 52, ko: "행 15장36절~41절", en: "Act 15:36-41" },
+    { seq: 391, day: 52, ko: "행 16장1절~5절", en: "Act 16:1-5" },
+    { seq: 392, day: 52, ko: "행 16장6절~10절", en: "Act 16:6-10" },
+    { seq: 393, day: 52, ko: "행 16장11절~40절", en: "Act 16:11-40" },
+    { seq: 394, day: 52, ko: "행 17장1절~9절", en: "Act 17:1-9" },
+    { seq: 395, day: 52, ko: "행 17장10절~15절", en: "Act 17:10-15" },
+    { seq: 396, day: 52, ko: "행 17장16절~34절", en: "Act 17:16-34" },
+    { seq: 397, day: 52, ko: "행 18장1절~4절", en: "Act 18:1-4" },
+    { seq: 398, day: 52, ko: "행 18장5절~17절", en: "Act 18:5-17" },
+    { seq: 399, day: 52, ko: "살전 1장", en: "1Th 1" },
+    { seq: 400, day: 52, ko: "살전 2장~3장", en: "1Th 2-3" },
+    { seq: 401, day: 52, ko: "살전 4장~5장", en: "1Th 4-5" },
+    { seq: 402, day: 52, ko: "살후 1장~3장", en: "2Th 1-3" },
+    { seq: 403, day: 52, ko: "갈 1장~2장", en: "Gal 1-2" },
+    { seq: 404, day: 52, ko: "갈 3장~5장", en: "Gal 3-5" },
+    { seq: 405, day: 52, ko: "갈 6장", en: "Gal 6" },
+    { seq: 406, day: 52, ko: "행 18장18절~22절", en: "Act 18:18-22" },
+    { seq: 407, day: 52, ko: "행 18장23절, 행 19장1b절", en: "Act 18:23, 19:1b" },
+    { seq: 408, day: 52, ko: "행 18장24절~19장1a절", en: "Act 18:24-19:1a" },
+    { seq: 409, day: 52, ko: "행 19장1절~20절", en: "Act 19:1-20" },
+    { seq: 410, day: 52, ko: "행 19장21절~22절", en: "Act 19:21-22" },
+    // Day 53
+    { seq: 411, day: 53, ko: "고전 1장~4장", en: "1Co 1-4" },
+    { seq: 412, day: 53, ko: "고전 5장~6장", en: "1Co 5-6" },
+    { seq: 413, day: 53, ko: "고전 7장", en: "1Co 7" },
+    { seq: 414, day: 53, ko: "고전 8장~11장1절", en: "1Co 8-11:1" },
+    { seq: 415, day: 53, ko: "고전 11장", en: "1Co 11" },
+    { seq: 416, day: 53, ko: "고전 12장~13장", en: "1Co 12-13" },
+    { seq: 417, day: 53, ko: "고전 14장", en: "1Co 14" },
+    { seq: 418, day: 53, ko: "고전 15장", en: "1Co 15" },
+    { seq: 419, day: 53, ko: "고전 16장", en: "1Co 16" },
+    { seq: 420, day: 53, ko: "행 19장23절~41절", en: "Act 19:23-41" },
+    { seq: 421, day: 53, ko: "행 20장1절~2a절", en: "Act 20:1-2a" },
+    { seq: 422, day: 53, ko: "고후 1장1절~11절", en: "2Co 1:1-11" },
+    { seq: 423, day: 53, ko: "고후 1장12절~14절", en: "2Co 1:12-14" },
+    { seq: 424, day: 53, ko: "고후 1장15절~2장11절", en: "2Co 1:15-2:11" },
+    { seq: 425, day: 53, ko: "고후 2장12절~17절", en: "2Co 2:12-17" },
+    // Day 54
+    { seq: 426, day: 54, ko: "고후 3장~7장16절", en: "2Co 3-7:16" },
+    { seq: 427, day: 54, ko: "고후 8장~9장", en: "2Co 8-9" },
+    { seq: 428, day: 54, ko: "고후 10장~12장13절", en: "2Co 10-12:13" },
+    { seq: 429, day: 54, ko: "고후 12장14절~13장13절", en: "2Co 12:14-13:13" },
+    { seq: 430, day: 54, ko: "행 20장2b절~3절", en: "Act 20:2b-3" },
+    { seq: 431, day: 54, ko: "롬 1장", en: "Rom 1" },
+    { seq: 432, day: 54, ko: "롬 2장", en: "Rom 2" },
+    { seq: 433, day: 54, ko: "롬 3장1절~20절", en: "Rom 3:1-20" },
+    { seq: 434, day: 54, ko: "롬 3장21절~31절", en: "Rom 3:21-31" },
+    { seq: 435, day: 54, ko: "롬 4장", en: "Rom 4" },
+    { seq: 436, day: 54, ko: "롬 5장", en: "Rom 5" },
+    { seq: 437, day: 54, ko: "롬 6장", en: "Rom 6" },
+    { seq: 438, day: 54, ko: "롬 7장", en: "Rom 7" },
+    { seq: 439, day: 54, ko: "롬 8장", en: "Rom 8" },
+    { seq: 440, day: 54, ko: "롬 9장~11장", en: "Rom 9-11" },
+    { seq: 441, day: 54, ko: "롬 12장~15장13절", en: "Rom 12-15:13" },
+    { seq: 442, day: 54, ko: "롬 15장14절~33절", en: "Rom 15:14-33" },
+    { seq: 443, day: 54, ko: "롬 16장", en: "Rom 16" },
+    { seq: 444, day: 54, ko: "행 20장3b절~21장16절", en: "Act 20:3b-21:16" },
+    { seq: 445, day: 54, ko: "행 21장17절~26절", en: "Act 21:17-26" },
+    { seq: 446, day: 54, ko: "행 21장27절~36절", en: "Act 21:27-36" },
+    { seq: 447, day: 54, ko: "행 21장37절~22장29절", en: "Act 21:37-22:29" },
+    { seq: 448, day: 54, ko: "행 22장30절~23장11절", en: "Act 22:30-23:11" },
+    { seq: 449, day: 54, ko: "행 23장12절~35절", en: "Act 23:12-35" },
+    { seq: 450, day: 54, ko: "행 24장1절~23절", en: "Act 24:1-23" },
+    { seq: 451, day: 54, ko: "행 24장24절~26절", en: "Act 24:24-26" },
+    { seq: 452, day: 54, ko: "행 24장27절", en: "Act 24:27" },
+    // Day 55
+    { seq: 453, day: 55, ko: "행 25장1절~5절", en: "Act 25:1-5" },
+    { seq: 454, day: 55, ko: "행 25장6절~12절", en: "Act 25:6-12" },
+    { seq: 455, day: 55, ko: "행 25장13절~26장32절", en: "Act 25:13-26:32" },
+    { seq: 456, day: 55, ko: "행 27장~28장14절", en: "Act 27-28:14" },
+    { seq: 457, day: 55, ko: "행 28장15절~31절", en: "Act 28:15-31" },
+    { seq: 458, day: 55, ko: "골 1장~2장5절", en: "Col 1-2:5" },
+    { seq: 459, day: 55, ko: "골 2장6절~23절", en: "Col 2:6-23" },
+    { seq: 460, day: 55, ko: "골 3장1절~17절", en: "Col 3:1-17" },
+    { seq: 461, day: 55, ko: "골 3장18절~4장1절", en: "Col 3:18-4:1" },
+    { seq: 462, day: 55, ko: "골 4장2절~18절", en: "Col 4:2-18" },
+    { seq: 463, day: 55, ko: "몬 1장", en: "Phm 1" },
+    { seq: 464, day: 55, ko: "엡 1장1절~14절", en: "Eph 1:1-14" },
+    { seq: 465, day: 55, ko: "엡 1장15절~23절", en: "Eph 1:15-23" },
+    { seq: 466, day: 55, ko: "엡 2장~3장", en: "Eph 2-3" },
+    { seq: 467, day: 55, ko: "엡 4장~5장20절", en: "Eph 4-5:20" },
+    { seq: 468, day: 55, ko: "엡 5장21절~6장9절", en: "Eph 5:21-6:9" },
+    // Day 56
+    { seq: 469, day: 56, ko: "엡 6장10절~24절", en: "Eph 6:10-24" },
+    { seq: 470, day: 56, ko: "빌 1장", en: "Php 1" },
+    { seq: 471, day: 56, ko: "빌 2장", en: "Php 2" },
+    { seq: 472, day: 56, ko: "빌 3장", en: "Php 3" },
+    { seq: 473, day: 56, ko: "빌 4장", en: "Php 4" },
+    { seq: 474, day: 56, ko: "딤전 1장", en: "1Ti 1" },
+    { seq: 475, day: 56, ko: "딤전 2장", en: "1Ti 2" },
+    { seq: 476, day: 56, ko: "딤전 3장", en: "1Ti 3" },
+    { seq: 477, day: 56, ko: "딤전 4장", en: "1Ti 4" },
+    { seq: 478, day: 56, ko: "딤전 5장~6장2절", en: "1Ti 5-6:2" },
+    { seq: 479, day: 56, ko: "딤전 6장3절~21절", en: "1Ti 6:3-21" },
+    { seq: 480, day: 56, ko: "딛 1장", en: "Tit 1" },
+    { seq: 481, day: 56, ko: "딛 2장", en: "Tit 2" },
+    { seq: 482, day: 56, ko: "딛 3장", en: "Tit 3" },
+    { seq: 483, day: 56, ko: "딛 3장12절~15절", en: "Tit 3:12-15" },
+    { seq: 484, day: 56, ko: "딤후 1장1절~14절", en: "2Ti 1:1-14" },
+    { seq: 485, day: 56, ko: "딤후 1장15절~18절", en: "2Ti 1:15-18" },
+    { seq: 486, day: 56, ko: "딤후 2장", en: "2Ti 2" },
+    { seq: 487, day: 56, ko: "딤후 3장", en: "2Ti 3" },
+    { seq: 488, day: 56, ko: "딤후 4장", en: "2Ti 4" },
+    // Day 57
+    { seq: 489, day: 57, ko: "약 1장1절", en: "Jam 1:1" },
+    { seq: 490, day: 57, ko: "약 1장2절~27절", en: "Jam 1:2-27" },
+    { seq: 491, day: 57, ko: "약 2장", en: "Jam 2" },
+    { seq: 492, day: 57, ko: "약 3장~5장", en: "Jam 3-5" },
+    { seq: 493, day: 57, ko: "유 1절~4절", en: "Jud 1-4" },
+    { seq: 494, day: 57, ko: "유 5절~23절", en: "Jud 5-23" },
+    { seq: 495, day: 57, ko: "유 24절~25절", en: "Jud 24-25" },
+    { seq: 496, day: 57, ko: "벧전 1장1절~2절", en: "1Pe 1:1-2" },
+    { seq: 497, day: 57, ko: "벧전 1장3절~25절", en: "1Pe 1:3-25" },
+    { seq: 498, day: 57, ko: "벧전 2장", en: "1Pe 2" },
+    { seq: 499, day: 57, ko: "벧전 3장", en: "1Pe 3" },
+    { seq: 500, day: 57, ko: "벧전 4장", en: "1Pe 4" },
+    { seq: 501, day: 57, ko: "벧전 5장1절~11절", en: "1Pe 5:1-11" },
+    { seq: 502, day: 57, ko: "벧전 5장12절~14절", en: "1Pe 5:12-14" },
+    { seq: 503, day: 57, ko: "벧후 1장1절~15절", en: "2Pe 1:1-15" },
+    { seq: 504, day: 57, ko: "벧후 1장16절~21절", en: "2Pe 1:16-21" },
+    { seq: 505, day: 57, ko: "벧후 2장", en: "2Pe 2" },
+    { seq: 506, day: 57, ko: "벧후 3장", en: "2Pe 3" },
+    // Day 58
+    { seq: 507, day: 58, ko: "히 1장~3장6절", en: "Heb 1-3:6" },
+    { seq: 508, day: 58, ko: "히 3장7절~4장13절", en: "Heb 3:7-4:13" },
+    { seq: 509, day: 58, ko: "히 4장14절~10장39절", en: "Heb 4:14-10:39" },
+    { seq: 510, day: 58, ko: "히 11장", en: "Heb 11" },
+    { seq: 511, day: 58, ko: "히 12장~13장", en: "Heb 12-13" },
+    // Day 59
+    { seq: 512, day: 59, ko: "요일 1장1절", en: "1Jn 1:1" },
+    { seq: 513, day: 59, ko: "요일 1장2절~4절", en: "1Jn 1:2-4" },
+    { seq: 514, day: 59, ko: "요일 1장5절~5장", en: "1Jn 1:5-5" },
+    { seq: 515, day: 59, ko: "요이 1장", en: "2Jn 1" },
+    { seq: 516, day: 59, ko: "요삼 1장", en: "3Jn 1" },
+    // Day 60
+    { seq: 517, day: 60, ko: "계 1장~3장", en: "Rev 1-3" },
+    { seq: 518, day: 60, ko: "계 3장21절~22절", en: "Rev 3:21-22" },
+    { seq: 519, day: 60, ko: "계 4장~5장", en: "Rev 4-5" },
+    { seq: 520, day: 60, ko: "계 6장~7장", en: "Rev 6-7" },
+    { seq: 521, day: 60, ko: "계 8장~16장", en: "Rev 8-16" },
+    { seq: 522, day: 60, ko: "계 17장~20장", en: "Rev 17-20" },
+    { seq: 523, day: 60, ko: "계 21장~22장", en: "Rev 21-22" },
+    { seq: 524, day: 60, ko: "계 22장6절~21절", en: "Rev 22:6-21" },
+];
+const ENC_KO = ["오늘도 말씀 앞에 섰어요! \u{1F64F}", "한 걸음 더 나아갔어요! \u{2728}", "말씀이 마음에 새겨지고 있어요 \u{1F49B}", "꾸준함이 기적을 만들어요! \u{1F331}", "하나님이 기뻐하세요! \u{1F389}", "오늘의 말씀이 빛이 되길! \u{2600}️", "멈추지 않으면 반드시 도착해요 \u{1F3C3}", "말씀 속 보물을 발견했나요? \u{1F48E}", "작은 한 단락이 큰 변화를! \u{1F30A}", "오늘도 충성스럽게! \u{1F451}"];
+const ENC_EN = ["You showed up for the Word! \u{1F64F}", "One step further! \u{2728}", "The Word is taking root \u{1F49B}", "Consistency creates miracles! \u{1F331}", "God is pleased with you! \u{1F389}", "May today's Word be your light! \u{2600}️", "Keep going! \u{1F3C3}", "Found treasure in the Word? \u{1F48E}", "Even one section changes everything! \u{1F30A}", "Faithful and steadfast! \u{1F451}"];
+const DAY_COLORS = [
+    "#f59e0b", "#f97316", "#ef4444", "#ec4899", "#a855f7", "#8b5cf6", "#6366f1", "#3b82f6",
+    "#0ea5e9", "#06b6d4", "#14b8a6", "#10b981", "#22c55e", "#84cc16", "#eab308", "#fb923c",
+    "#f87171", "#f472b6", "#c084fc", "#818cf8", "#60a5fa", "#38bdf8", "#22d3ee", "#2dd4bf",
+    "#34d399", "#4ade80", "#a3e635", "#fbbf24", "#fca5a5", "#d8b4fe", "#a5b4fc", "#93c5fd",
+    "#7dd3fc", "#67e8f9", "#5eead4", "#6ee7b7", "#86efac", "#bef264", "#fde68a", "#fed7aa",
+    "#fecaca", "#fbcfe8", "#e9d5ff", "#c7d2fe", "#bae6fd", "#bfdbfe", "#99f6e4", "#bbf7d0",
+    "#d9f99d", "#fef08a", "#fde047", "#facc15", "#fb923c", "#f87171", "#f472b6", "#e879f9",
+    "#a78bfa", "#818cf8", "#60a5fa", "#38bdf8", "#22d3ee", "#2dd4bf", "#34d399", "#10b981",
+];
+// 33x21 성경책 픽셀맵 (551 칸, 524단락 + 여백)
+// 0=바깥, 1=금테두리, 2=내지(단락배정), 3=십자가, 4=HOLY존, 5=BIBLE존
+const COLS = 33, ROWS = 21;
+const BOOK_MAP = [
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 1, 0],
+    [0, 1, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 1, 0],
+    [0, 1, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+];
+// 셀 목록 미리 계산 (zone>=2에 단락 순서대로 배정)
+const CELLS = (() => {
+    const cells = [];
+    let idx = 0;
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const zone = BOOK_MAP[r][c];
+            const item = (zone >= 2 && idx < 524) ? PLAN[idx++] : null;
+            cells.push({ r, c, zone, seq: item ? item.seq : null, day: item ? item.day : null });
+        }
+    }
+    return cells;
+})();
+const THEMES = {
+    emerald: { name: "에메랄드", nameEn: "Emerald", bg: "linear-gradient(160deg,#0d1117 0%,#161b27 60%,#0d1117 100%)", accent: "#10b981", accent2: "#8b5cf6", ring: "#10b981", headerBg: "rgba(16,185,129,.12)" },
+    ocean: { name: "오션블루", nameEn: "Ocean", bg: "linear-gradient(160deg,#0a0f1e 0%,#0f1f3d 60%,#0a0f1e 100%)", accent: "#3b82f6", accent2: "#06b6d4", ring: "#3b82f6", headerBg: "rgba(59,130,246,.12)" },
+    rose: { name: "로즈골드", nameEn: "Rose", bg: "linear-gradient(160deg,#1a0a0f 0%,#2d1020 60%,#1a0a0f 100%)", accent: "#f43f5e", accent2: "#ec4899", ring: "#f43f5e", headerBg: "rgba(244,63,94,.12)" },
+    golden: { name: "골든", nameEn: "Golden", bg: "linear-gradient(160deg,#1a1100 0%,#2d1f00 60%,#1a1100 100%)", accent: "#f59e0b", accent2: "#f97316", ring: "#f59e0b", headerBg: "rgba(245,158,11,.12)" },
+    purple: { name: "퍼플", nameEn: "Purple", bg: "linear-gradient(160deg,#0f0a1e 0%,#1a1035 60%,#0f0a1e 100%)", accent: "#a855f7", accent2: "#6366f1", ring: "#a855f7", headerBg: "rgba(168,85,247,.12)" },
+};
+function Confetti({ onDone }) {
+    useEffect(() => { const t = setTimeout(onDone, 2200); return () => clearTimeout(t); }, [onDone]);
+    const colors = ["#f59e0b", "#10b981", "#3b82f6", "#ec4899", "#8b5cf6", "#ef4444", "#14b8a6", "#f97316"];
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999, overflow: "hidden", background: "transparent" } },
+        Array.from({ length: 32 }).map((_, i) => (React.createElement("div", { key: i, style: {
+                position: "absolute", top: "-16px",
+                left: (Math.random() * 100) + "%",
+                width: (7 + Math.random() * 7) + "px",
+                height: (7 + Math.random() * 7) + "px",
+                borderRadius: i % 3 === 0 ? "50%" : "2px",
+                backgroundColor: colors[i % colors.length],
+                animation: "fall 2.2s ease-in forwards",
+                animationDelay: (Math.random() * 0.6) + "s",
+            } }))),
+        React.createElement("style", null, "@keyframes fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}")));
+}
+// \u{2500}\u{2500} 모자이크 컴포넌트 \u{2500}\u{2500}
+function MosaicMap({ checked, doneCount, total, pct, currentDay, days, dayStats, lang, setView, setOpenDay }) {
+    const [hovered, setHovered] = useState(null);
+    const allDone = doneCount === total;
+    const hovItem = hovered ? PLAN.find(p => p.seq === hovered) : null;
+    const color = (cell) => {
+        if (cell.zone === 0)
+            return "transparent";
+        if (cell.zone === 1)
+            return "#92400e"; // 금테두리
+        if (!cell.seq) {
+            // 장식 영역
+            if (cell.zone === 3)
+                return checked[cell.seq] ? "#f59e0b" : "#78350f"; // 십자가
+            if (cell.zone === 4)
+                return "#0f2a4a"; // HOLY
+            if (cell.zone === 5)
+                return "#0a1a30"; // BIBLE
+            return "#1a2535";
+        }
+        if (checked[cell.seq])
+            return DAY_COLORS[(cell.day - 1) % DAY_COLORS.length];
+        // 미읽음
+        if (cell.zone === 3)
+            return "#3b1a08";
+        if (cell.zone === 4)
+            return "#091525";
+        if (cell.zone === 5)
+            return "#060f1a";
+        return "rgba(255,255,255,0.05)";
+    };
+    return (React.createElement("div", null,
+        React.createElement("div", { style: { padding: "12px 16px", borderRadius: 12, background: "rgba(245,158,11,.08)", border: "1px solid rgba(245,158,11,.22)", marginBottom: 10, textAlign: "center" } },
+            React.createElement("div", { style: { fontSize: 14, color: "#f59e0b", fontWeight: 700 } }, allDone ? "\u{1F389} " + (lang === "ko" ? "1독 완성!" : "Bible Complete!") : "\u{1F4CD} Day "+currentDay+" "+(lang === "ko" ? "진행 중" : "in progress")),
+            React.createElement("div", { style: { fontSize: 12, color: "#64748b", marginTop: 2 } }, lang === "ko" ? "524단락 중 "+doneCount+"개 색칠됨 ("+pct+"%)" : doneCount+" / 524 colored ("+pct+"%)") ,
+            React.createElement("div", { style: { height: 5, borderRadius: 3, background: "rgba(255,255,255,.08)", overflow: "hidden", marginTop: 8 } },
+                React.createElement("div", { style: { height: "100%", width: pct+"%", background: "linear-gradient(90deg,#10b981,#3b82f6)", borderRadius: 3, transition: "width .5s ease" } }))),
+        React.createElement("div", { style: { minHeight: 22, marginBottom: 6, textAlign: "center", fontSize: 11, color: "#94a3b8" } }, hovItem
+            ? "#"+hovItem.seq+" Day "+hovItem.day+" — "+hovItem[lang==="ko"?"ko":"en"]+" "+(checked[hovItem.seq]?"✓":"")
+            : (lang === "ko" ? "칸을 탭하면 해당 단락으로 이동" : "Tap a cell to jump to that section")),
+        React.createElement("div", { style: { background: "rgba(0,0,0,.35)", borderRadius: 14, padding: "12px 8px 10px", border: "1px solid rgba(255,255,255,.08)" } },
+            React.createElement("div", { style: { textAlign: "center", fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: 2 } }, "\u271D \u00A0 H O L Y \u00A0 B I B L E"),
+            React.createElement("div", { style: {
+                    display: "grid",
+                    gridTemplateColumns: "repeat("+COLS+", 1fr)",
+                    gap: 1,
+                    maxWidth: 340,
+                    margin: "0 auto",
+                } }, CELLS.map((cell, i) => {
+                const c = color(cell);
+                const isH = cell.seq && hovered === cell.seq;
+                const isDone = cell.seq && checked[cell.seq];
+                return (React.createElement("div", { key: i, onMouseEnter: () => cell.seq && setHovered(cell.seq), onMouseLeave: () => setHovered(null), onClick: () => {
+                        if (!cell.seq)
+                            return;
+                        const item = PLAN.find(p => p.seq === cell.seq);
+                        if (item) {
+                            setView("list");
+                            setOpenDay(item.day);
+                        }
+                    }, style: {
+                        aspectRatio: "1",
+                        background: c,
+                        borderRadius: cell.zone === 1 ? 0 : 1,
+                        cursor: cell.seq ? "pointer" : "default",
+                        outline: isH ? "1px solid #fff" : "none",
+                        transform: isH ? "scale(1.5)" : "scale(1)",
+                        zIndex: isH ? 10 : 1,
+                        position: "relative",
+                        transition: "transform .08s",
+                        boxShadow: isDone ? "0 0 3px "+c+"bb" : "none",
+                    } }));
+            })),
+            React.createElement("div", { style: { marginTop: 10, display: "flex", flexWrap: "wrap", gap: 2.5, justifyContent: "center", maxWidth: 340, margin: "10px auto 0" } }, days.map(d => {
+                const { done: dd, total: dt } = dayStats(d);
+                const full = dd === dt;
+                const partial = dd > 0 && !full;
+                return (React.createElement("div", { key: d, title: "Day "+d+": "+dd+"/"+dt, onClick: () => { setView("list"); setOpenDay(d); }, style: {
+                        width: 11, height: 11, borderRadius: 3, cursor: "pointer",
+                        background: full ? DAY_COLORS[(d - 1) % DAY_COLORS.length]
+                            : partial ? DAY_COLORS[(d - 1) % DAY_COLORS.length] + "55"
+                                : "rgba(255,255,255,.05)",
+                        border: d === currentDay ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,.05)",
+                        boxShadow: full ? "0 0 4px "+DAY_COLORS[(d-1)%DAY_COLORS.length]+"88" : "none",
+                    } }));
+            })),
+            React.createElement("div", { style: { textAlign: "center", fontSize: 9, color: "#475569", marginTop: 4 } }, lang === "ko" ? "Day 1~60 진행 (탭하면 이동)" : "Day 1–60 progress (tap to jump)")),
+        allDone && (React.createElement("div", { style: { marginTop: 12, padding: "16px", borderRadius: 12, background: "linear-gradient(135deg,rgba(245,158,11,.18),rgba(16,185,129,.18))", border: "1px solid rgba(245,158,11,.4)", textAlign: "center" } },
+            React.createElement("div", { style: { fontSize: 28 } }, "\uD83C\uDFC6"),
+            React.createElement("div", { style: { fontSize: 16, fontWeight: 700, color: "#f59e0b", marginTop: 6 } }, lang === "ko" ? "1독 완성! 성경책이 완성됐어요!" : "1st Reading Complete!"),
+            React.createElement("div", { style: { fontSize: 12, color: "#94a3b8", marginTop: 4 } }, lang === "ko" ? "말씀속에 꿈틀대는 생명들, 열방으로 비행하라!" : "Back to the Basic! Back to the Bible!")))));
+}
+// \u{2500}\u{2500} 메인 앱 \u{2500}\u{2500}
+// 샘플 그룹 데이터 (Firebase 연결 전 미리보기용)
+const SAMPLE_GROUPS = [
+    { id: 1, name: "40대 여성 성경읽기", desc: "같은 나이대 자매님들과 함께해요", members: 12, avg: 45, open: true, today: 5 },
+    { id: 2, name: "새벽기도 통독팀", desc: "매일 새벽 말씀으로 시작해요", members: 8, avg: 62, open: true, today: 6 },
+    { id: 3, name: "직장인 성경읽기", desc: "바쁜 직장인도 함께해요", members: 15, avg: 33, open: true, today: 8 },
+    { id: 4, name: "영어성경 같이읽기", desc: "한영 대조로 읽어요", members: 6, avg: 28, open: true, today: 2 },
+];
+function CommunityTab({ lang, nickname, setNickname, T }) {
+    const [tab, setTab] = useState("home");
+    const [inputNick, setInputNick] = useState(nickname);
+    const [groupName, setGroupName] = useState("");
+    const [groupDesc, setGroupDesc] = useState("");
+    const [groupOpen, setGroupOpen] = useState(true);
+    const [appliedGroups, setAppliedGroups] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem("bc_applied") || "[]");
+        }
+        catch (_a) {
+            return [];
+        }
+    });
+    const [myGroups, setMyGroups] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem("bc_mygroups") || "[]");
+        }
+        catch (_a) {
+            return [];
+        }
+    });
+    const [showNickModal, setShowNickModal] = useState(!nickname);
+    const ko = lang === "ko";
+    const saveNickname = () => {
+        if (!inputNick.trim())
+            return;
+        setNickname(inputNick.trim());
+        localStorage.setItem("bc_nickname", inputNick.trim());
+        setShowNickModal(false);
+    };
+    const applyGroup = (id) => {
+        const next = [...appliedGroups, id];
+        setAppliedGroups(next);
+        localStorage.setItem("bc_applied", JSON.stringify(next));
+    };
+    const createGroup = () => {
+        if (!groupName.trim())
+            return;
+        const ng = { id: Date.now(), name: groupName, desc: groupDesc, open: groupOpen, members: 1, avg: 0, today: 0 };
+        const next = [...myGroups, ng];
+        setMyGroups(next);
+        localStorage.setItem("bc_mygroups", JSON.stringify(next));
+        setGroupName("");
+        setGroupDesc("");
+        setTab("mygroup");
+    };
+    if (showNickModal)
+        return (React.createElement("div", { style: { padding: "20px 0" } },
+            React.createElement("div", { style: { background: "rgba(255,255,255,.04)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,.08)" } },
+                React.createElement("div", { style: { textAlign: "center", marginBottom: 20 } },
+                    React.createElement("div", { style: { fontSize: 32, marginBottom: 8 } }, "\uD83D\uDC4B"),
+                    React.createElement("div", { style: { fontSize: 16, fontWeight: 700, color: "#e2e8f0" } }, ko ? "커뮤니티에 오신 걸 환영해요!" : "Welcome to Community!"),
+                    React.createElement("div", { style: { fontSize: 12, color: "#64748b", marginTop: 4 } }, ko ? "닉네임을 입력해주세요" : "Please enter your nickname")),
+                React.createElement("input", { value: inputNick, onChange: e => setInputNick(e.target.value), onKeyDown: e => e.key === "Enter" && saveNickname(), placeholder: ko ? "닉네임 (예: 말씀나그네)" : "Nickname", style: { width: "100%", padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.15)", color: "#e2e8f0", fontSize: 14, fontFamily: "inherit", outline: "none", marginBottom: 12 } }),
+                React.createElement("button", { onClick: saveNickname, style: { width: "100%", padding: "12px", borderRadius: 10, background: T.accent, border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" } }, ko ? "시작하기" : "Start"))));
+    return (React.createElement("div", null,
+        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+            React.createElement("div", { style: { fontSize: 13, color: "#e2e8f0" } },
+                "\uD83D\uDC64 ",
+                React.createElement("span", { style: { color: T.accent, fontWeight: 700 } }, nickname),
+                ko ? "님" : ""),
+            React.createElement("button", { onClick: () => setShowNickModal(true), style: { fontSize: 11, color: "#64748b", background: "none", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit" } }, ko ? "닉네임 변경" : "Change")),
+        React.createElement("div", { style: { display: "flex", gap: 4, marginBottom: 14 } }, [["home", ko ? "\u{1F30D} 전체" : "\u{1F30D} All"], ["groups", ko ? "\u{1F50D} 찾기" : "\u{1F50D} Find"], ["mygroup", ko ? "\u{1F465} 내그룹" : "\u{1F465} Mine"], ["create", ko ? "\u{2795} 만들기" : "\u{2795} Create"]].map(([v, l]) => (React.createElement("button", { key: v, onClick: () => setTab(v), style: { flex: 1, padding: "7px 2px", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 10, fontWeight: 600, borderRadius: 8, background: tab === v ? T.accent+"33" : "rgba(255,255,255,.04)", color: tab === v ? T.accent : "#64748b" } }, l)))),
+        tab === "home" && (React.createElement("div", null,
+            React.createElement("div", { style: { background: "rgba(255,255,255,.03)", borderRadius: 12, padding: 16, marginBottom: 12, textAlign: "center" } },
+                React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginBottom: 4 } }, ko ? "지금 함께 읽고 있어요" : "Reading together right now"),
+                React.createElement("div", { style: { fontSize: 36, fontWeight: 700, color: T.accent } }, "247"),
+                React.createElement("div", { style: { fontSize: 12, color: "#94a3b8" } }, ko ? "명" : "people")),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 } }, [[ko ? "오늘 읽은 사람" : "Read today", "45명", "\u{1F525}"], [ko ? "평균 진행률" : "Avg progress", "38%", "\u{1F4CA}"], [ko ? "그룹 수" : "Groups", "23개", "\u{1F465}"], [ko ? "완독자" : "Completed", "3명", "\u{1F3C6}"]].map(([l, v, e]) => (React.createElement("div", { key: l, style: { background: "rgba(255,255,255,.04)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(255,255,255,.07)" } },
+                React.createElement("div", { style: { fontSize: 18 } }, e),
+                React.createElement("div", { style: { fontSize: 16, fontWeight: 700, color: "#e2e8f0", marginTop: 4 } }, v),
+                React.createElement("div", { style: { fontSize: 10, color: "#64748b" } }, l))))),
+            React.createElement("div", { style: { background: "rgba(255,255,255,.03)", borderRadius: 12, padding: 14 } },
+                React.createElement("div", { style: { fontSize: 12, color: "#94a3b8", marginBottom: 10, fontWeight: 600 } },
+                    "\uD83D\uDD25 ",
+                    ko ? "오늘 읽은 분들" : "Today's readers"),
+                ["말씀나그네", "새벽이슬", "은혜받은자", "통독완주", "말씀사모"].map((n, i) => (React.createElement("div", { key: n, style: { display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,.05)" } },
+                    React.createElement("div", { style: { width: 28, height: 28, borderRadius: "50%", background: T.accent+"33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: T.accent, fontWeight: 700 } }, n[0]),
+                    React.createElement("span", { style: { fontSize: 13, color: "#e2e8f0" } }, n),
+                    React.createElement("span", { style: { fontSize: 10, color: "#64748b", marginLeft: "auto" } },
+                        "Day ",
+                        [27, 45, 12, 58, 33][i])))),
+                React.createElement("div", { style: { fontSize: 10, color: "#475569", textAlign: "center", marginTop: 8 } }, ko ? "Firebase 연결 후 실시간 데이터 표시" : "Live data after Firebase connection")))),
+        tab === "groups" && (React.createElement("div", null,
+            React.createElement("div", { style: { fontSize: 12, color: "#64748b", marginBottom: 12 } }, ko ? "공개 그룹이에요. 신청하면 방장이 수락해요 \u{1F60A}" : "Public groups. Host will approve your request \u{1F60A}"),
+            SAMPLE_GROUPS.map(g => {
+                const applied = appliedGroups.includes(g.id);
+                return (React.createElement("div", { key: g.id, style: { background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid rgba(255,255,255,.07)" } },
+                    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+                        React.createElement("div", { style: { flex: 1 } },
+                            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: "#e2e8f0" } }, g.name),
+                            React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginTop: 2 } }, g.desc),
+                            React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 6 } },
+                                React.createElement("span", { style: { fontSize: 10, color: "#94a3b8" } },
+                                    "\uD83D\uDC65 ",
+                                    g.members,
+                                    "\uBA85"),
+                                React.createElement("span", { style: { fontSize: 10, color: "#94a3b8" } },
+                                    "\uD83D\uDCCA ",
+                                    g.avg,
+                                    "%"),
+                                React.createElement("span", { style: { fontSize: 10, color: "#f59e0b" } },
+                                    "\uD83D\uDD25 \uC624\uB298 ",
+                                    g.today,
+                                    "\uBA85"))),
+                        React.createElement("button", { onClick: () => !applied && applyGroup(g.id), style: { padding: "7px 12px", borderRadius: 8, border: "none", cursor: applied ? "default" : "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: 600, background: applied ? "rgba(255,255,255,.08)" : T.accent, color: applied ? "#64748b" : "#fff", flexShrink: 0, marginLeft: 8 } }, applied ? (ko ? "신청완료" : "Applied") : (ko ? "신청" : "Apply"))),
+                    React.createElement("div", { style: { height: 4, borderRadius: 2, background: "rgba(255,255,255,.08)", overflow: "hidden", marginTop: 10 } },
+                        React.createElement("div", { style: { height: "100%", width: g.avg+"%", background: T.accent, borderRadius: 2 } }))));
+            }),
+            myGroups.filter(g => g.open).map(g => (React.createElement("div", { key: g.id, style: { background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid "+T.accent+"33" } },
+                React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: "#e2e8f0" } },
+                    g.name,
+                    " ",
+                    React.createElement("span", { style: { fontSize: 10, color: T.accent } }, "\uD83D\uDC51 \uB0B4\uADF8\uB8F9")),
+                React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginTop: 2 } }, g.desc)))))),
+        tab === "mygroup" && (React.createElement("div", null, myGroups.length === 0 ? (React.createElement("div", { style: { textAlign: "center", padding: "40px 0", color: "#475569" } },
+            React.createElement("div", { style: { fontSize: 32, marginBottom: 12 } }, "\uD83D\uDC65"),
+            React.createElement("div", { style: { fontSize: 14 } }, ko ? "아직 그룹이 없어요" : "No groups yet"),
+            React.createElement("div", { style: { fontSize: 12, marginTop: 6 } }, ko ? "그룹을 만들거나 신청해보세요!" : "Create or apply for a group!"),
+            React.createElement("button", { onClick: () => setTab("create"), style: { marginTop: 16, padding: "10px 20px", borderRadius: 10, background: T.accent, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" } }, ko ? "그룹 만들기" : "Create Group"))) : myGroups.map(g => (React.createElement("div", { key: g.id, style: { background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid "+T.accent+"33" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+                React.createElement("div", null,
+                    React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: "#e2e8f0" } }, g.name),
+                    React.createElement("div", { style: { fontSize: 10, color: T.accent } },
+                        "\uD83D\uDC51 ",
+                        ko ? "내가 만든 그룹" : "My group",
+                        " \u00B7 ",
+                        g.open ? (ko ? "공개" : "Public") : (ko ? "비공개" : "Private"))),
+                React.createElement("div", { style: { fontSize: 10, color: "#64748b" } },
+                    "\uD83D\uDC65 ",
+                    g.members,
+                    "\uBA85")),
+            React.createElement("div", { style: { fontSize: 11, color: "#475569", textAlign: "center", padding: 10, background: "rgba(0,0,0,.2)", borderRadius: 8 } }, ko ? "Firebase 연결 후 멤버 진도가 표시됩니다" : "Member progress shown after Firebase connection")))))),
+        tab === "create" && (React.createElement("div", { style: { background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 16, border: "1px solid rgba(255,255,255,.07)" } },
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: "#e2e8f0", marginBottom: 14 } }, ko ? "새 그룹 만들기" : "Create New Group"),
+            React.createElement("div", { style: { marginBottom: 10 } },
+                React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginBottom: 5 } }, ko ? "그룹 이름" : "Group Name"),
+                React.createElement("input", { value: groupName, onChange: e => setGroupName(e.target.value), placeholder: ko ? "예: 40대 여성 성경읽기" : "e.g. Morning Bible Readers", style: { width: "100%", padding: "10px 12px", borderRadius: 8, background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" } })),
+            React.createElement("div", { style: { marginBottom: 10 } },
+                React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginBottom: 5 } }, ko ? "그룹 소개" : "Description"),
+                React.createElement("input", { value: groupDesc, onChange: e => setGroupDesc(e.target.value), placeholder: ko ? "간단한 소개" : "Brief description", style: { width: "100%", padding: "10px 12px", borderRadius: 8, background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" } })),
+            React.createElement("div", { style: { marginBottom: 16 } },
+                React.createElement("div", { style: { fontSize: 11, color: "#64748b", marginBottom: 8 } }, ko ? "공개 설정" : "Visibility"),
+                React.createElement("div", { style: { display: "flex", gap: 8 } }, [[true, ko ? "\u{1F30D} 공개" : "\u{1F30D} Public", ko ? "누구나 찾고 신청 가능" : "Anyone can find & apply"], [false, ko ? "\u{1F512} 비공개" : "\u{1F512} Private", ko ? "코드로만 참여" : "Join by code only"]].map(([v, l, d]) => (React.createElement("div", { key: l, onClick: () => setGroupOpen(v), style: { flex: 1, padding: 10, borderRadius: 8, cursor: "pointer", border: "1px solid "+(groupOpen === v ? T.accent : "rgba(255,255,255,.1)"), background: groupOpen === v ? T.accent+"15" : "rgba(255,255,255,.03)", textAlign: "center" } },
+                    React.createElement("div", { style: { fontSize: 12, fontWeight: 600, color: groupOpen === v ? T.accent : "#94a3b8" } }, l),
+                    React.createElement("div", { style: { fontSize: 10, color: "#64748b", marginTop: 2 } }, d)))))),
+            React.createElement("button", { onClick: createGroup, disabled: !groupName.trim(), style: { width: "100%", padding: 12, borderRadius: 10, background: groupName.trim() ? T.accent : "rgba(255,255,255,.08)", border: "none", color: groupName.trim() ? "#fff" : "#475569", fontSize: 14, fontWeight: 700, cursor: groupName.trim() ? "pointer" : "default", fontFamily: "inherit" } }, ko ? "그룹 만들기" : "Create Group"),
+            React.createElement("div", { style: { fontSize: 10, color: "#475569", textAlign: "center", marginTop: 8 } }, ko ? "Firebase 연결 후 실제 그룹이 생성됩니다" : "Groups will be real after Firebase connection")))));
+}
+function BibleTracker() {
+    const [lang, setLang] = useState("ko");
+    const [theme, setTheme] = useState(() => localStorage.getItem("bc_theme") || "emerald");
+    const [nickname, setNickname] = useState(() => localStorage.getItem("bc_nickname") || "");
+    const T = THEMES[theme];
+    const [checked, setChecked] = useState(() => {
+        try {
+            const v2 = localStorage.getItem("bc_v2_checked");
+            if (v2)
+                return JSON.parse(v2);
+            const old = localStorage.getItem("bc_checked") || localStorage.getItem("bible_checked");
+            if (old) {
+                const d = JSON.parse(old);
+                localStorage.setItem("bc_v2_checked", JSON.stringify(d));
+                return d;
+            }
+            return {};
+        }
+        catch (_a) {
+            return {};
+        }
+    });
+    const [readDates, setReadDates] = useState(() => {
+        try {
+            const v2 = localStorage.getItem("bc_v2_dates");
+            if (v2)
+                return JSON.parse(v2);
+            const old = localStorage.getItem("bc_dates") || localStorage.getItem("bible_dates");
+            if (old) {
+                const d = JSON.parse(old);
+                localStorage.setItem("bc_v2_dates", JSON.stringify(d));
+                return d;
+            }
+            return [];
+        }
+        catch (_a) {
+            return [];
+        }
+    });
+    const [confettiKey, setConfettiKey] = useState(0);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [msg, setMsg] = useState("");
+    const [openDay, setOpenDay] = useState(null);
+    const [view, setView] = useState("list");
+    const today = new Date().toISOString().slice(0, 10);
+    const total = PLAN.length; // 524
+    const doneCount = Object.values(checked).filter(Boolean).length;
+    const pct = Math.round((doneCount / total) * 100);
+    const days = Array.from({ length: 60 }, (_, i) => i + 1);
+    const currentDay = (() => {
+        // 체크된 단락 중 가장 큰 Day 찾기 (가장 최근 읽은 Day)
+        const checkedSeqs = Object.keys(checked).filter(seq => checked[seq]).map(Number);
+        if (checkedSeqs.length > 0) {
+            const checkedDays = checkedSeqs.map(seq => {
+                const item = PLAN.find(p => p.seq === seq);
+                return item ? item.day : 0;
+            });
+            const maxDay = Math.max(...checkedDays);
+            // 그 Day가 완료됐으면 다음 미완료 Day 찾기
+            const maxDayItems = PLAN.filter(p => p.day === maxDay);
+            const maxDayDone = maxDayItems.every(p => checked[p.seq]);
+            if (maxDayDone) {
+                // 다음 미완료 Day
+                for (let d = maxDay + 1; d <= 60; d++) {
+                    if (PLAN.filter(p => p.day === d).some(p => !checked[p.seq]))
+                        return d;
+                }
+                return 60;
+            }
+            return maxDay;
+        }
+        // 아무것도 안 읽었으면 Day 1
+        return 1;
+    })();
+    const toggle = (seq) => {
+        const next = Object.assign(Object.assign({}, checked), { [seq]: !checked[seq] });
+        setChecked(next);
+        localStorage.setItem("bc_v2_checked", JSON.stringify(next));
+        if (!checked[seq]) {
+            const enc = lang === "ko" ? ENC_KO : ENC_EN;
+            setMsg(enc[Math.floor(Math.random() * enc.length)]);
+            setConfettiKey(k => k + 1);
+            setShowConfetti(true);
+            if (!readDates.includes(today)) {
+                const nd = [...readDates, today];
+                setReadDates(nd);
+                localStorage.setItem("bc_v2_dates", JSON.stringify(nd));
+            }
+        }
+    };
+    const toggleDay = (day) => {
+        const items = PLAN.filter(p => p.day === day);
+        const allDone = items.every(p => checked[p.seq]);
+        const next = Object.assign({}, checked);
+        items.forEach(p => { next[p.seq] = !allDone; });
+        setChecked(next);
+        localStorage.setItem("bc_v2_checked", JSON.stringify(next));
+        if (!allDone) {
+            const enc = lang === "ko" ? ENC_KO : ENC_EN;
+            setMsg(enc[Math.floor(Math.random() * enc.length)]);
+            setConfettiKey(k => k + 1);
+            setShowConfetti(true);
+            if (!readDates.includes(today)) {
+                const nd = [...readDates, today];
+                setReadDates(nd);
+                localStorage.setItem("bc_v2_dates", JSON.stringify(nd));
+            }
+        }
+    };
+    const dayStats = (day) => {
+        const s = PLAN.filter(p => p.day === day);
+        return { done: s.filter(p => checked[p.seq]).length, total: s.length };
+    };
+    // 달력
+    const now = new Date();
+    const yr = now.getFullYear(), mo = now.getMonth();
+    const firstDow = new Date(yr, mo, 1).getDay();
+    const daysInMo = new Date(yr, mo + 1, 0).getDate();
+    const MO_KO = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+    const MO_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return (React.createElement("div", { style: { minHeight: "100vh", background: T.bg, color: "#e2e8f0", fontFamily: "'Noto Serif KR','Georgia',serif", paddingBottom: 70 } },
+        showConfetti && React.createElement(Confetti, { key: confettiKey, onDone: () => setShowConfetti(false) }),
+        React.createElement("div", { style: { background: "linear-gradient(180deg,"+T.headerBg+" 0%,transparent 100%)", padding: "26px 18px 18px", borderBottom: "1px solid rgba(255,255,255,.07)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+                React.createElement("div", { style: { display: "flex", gap: 5 } }, Object.entries(THEMES).map(([key, t]) => (React.createElement("div", { key: key, onClick: () => { setTheme(key); localStorage.setItem("bc_theme", key); }, style: { width: 22, height: 22, borderRadius: "50%", background: t.accent, cursor: "pointer", border: theme === key ? "2px solid #fff" : "2px solid transparent", boxShadow: theme === key ? "0 0 6px "+t.accent : "none", transition: "all .2s" } })))),
+                React.createElement("button", { onClick: () => setLang(l => l === "ko" ? "en" : "ko"), style: { background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.18)", color: "#e2e8f0", borderRadius: 20, padding: "5px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" } }, lang === "ko" ? "English" : "한국어")),
+            React.createElement("div", { style: { textAlign: "center" } },
+                React.createElement("div", { style: { fontSize: 28, marginBottom: 5 } }, "\uD83D\uDCD6"),
+                React.createElement("h1", { style: { margin: 0, fontSize: 19, fontWeight: 700, color: "#f0fdf4" } }, lang === "ko" ? "시대순 성경일독" : "Chronological Bible Reading"),
+                React.createElement("p", { style: { margin: "4px 0 0", fontSize: 12, color: "#64748b" } }, lang === "ko" ? "60일 · 524단락 시대순 읽기표" : "60-Day · 524 Sections Chronological")),
+            React.createElement("div", { style: { margin: "18px auto 0", width: 110, height: 110, position: "relative" } },
+                React.createElement("svg", { width: "110", height: "110", viewBox: "0 0 110 110" },
+                    React.createElement("circle", { cx: "55", cy: "55", r: "46", fill: "none", stroke: "rgba(255,255,255,.07)", strokeWidth: "9" }),
+                    React.createElement("circle", { cx: "55", cy: "55", r: "46", fill: "none", stroke: T.ring, strokeWidth: "9", strokeDasharray: ""+(2*Math.PI*46), strokeDashoffset: ""+(2*Math.PI*46*(1-pct/100)), strokeLinecap: "round", style: { transform: "rotate(-90deg)", transformOrigin: "55px 55px", transition: "stroke-dashoffset .6s" } })),
+                React.createElement("div", { style: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" } },
+                    React.createElement("span", { style: { fontSize: 22, fontWeight: 700, color: T.accent } },
+                        pct,
+                        "%"),
+                    React.createElement("span", { style: { fontSize: 10, color: "#64748b" } }, lang === "ko" ? "전체진행" : "Progress"))),
+            React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 22, marginTop: 12 } }, [
+                [doneCount, lang === "ko" ? "읽은단락" : "Read", T.accent],
+                ["Day "+currentDay, lang === "ko" ? "현재" : "Current", "#f59e0b"],
+                [total - doneCount, lang === "ko" ? "남은단락" : "Left", "#94a3b8"],
+            ].map(([v, l, c], i) => (React.createElement("div", { key: i, style: { textAlign: "center" } },
+                React.createElement("div", { style: { fontSize: 17, fontWeight: 700, color: c } }, v),
+                React.createElement("div", { style: { fontSize: 10, color: "#64748b" } }, l))))),
+            msg && (React.createElement("div", { style: { marginTop: 10, padding: "9px 14px", borderRadius: 10, background: "rgba(16,185,129,.13)", border: "1px solid rgba(16,185,129,.28)", fontSize: 13, color: "#6ee7b7", textAlign: "center" } }, msg))),
+        React.createElement("div", { style: { display: "flex", gap: 4, padding: "12px 14px 0", background: "rgba(0,0,0,.15)" } }, [["list", lang === "ko" ? "\u{1F4CB} 읽기표" : "\u{1F4CB} List"], ["map", lang === "ko" ? "\u{1F3A8} 진행현황" : "\u{1F3A8} Progress"], ["cal", lang === "ko" ? "\u{1F4C5} 달력" : "\u{1F4C5} Calendar"], ["community", lang === "ko" ? "\u{1F465} 커뮤니티" : "\u{1F465} Community"]].map(([v, l]) => (React.createElement("button", { key: v, className: "tab "+(view===v?"on":""), onClick: () => setView(v), style: { fontSize: 11 } }, l)))),
+        React.createElement("div", { style: { padding: "12px 14px" } },
+            view === "list" && (React.createElement("div", null,
+                React.createElement("div", { style: { display: "flex", gap: 10, marginBottom: 12 } }, [[lang === "ko" ? "\u{1F33F} 구약" : "\u{1F33F} OT", "#10b981"], [lang === "ko" ? "\u{271D} 신약" : "\u{271D} NT", "#8b5cf6"]].map(([l, c]) => (React.createElement("div", { key: l, style: { display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" } },
+                    React.createElement("div", { style: { width: 10, height: 10, borderRadius: 2, background: c, opacity: .8 } }),
+                    l)))),
+                days.map(day => {
+                    const items = PLAN.filter(p => p.day === day);
+                    const { done, total: dt } = dayStats(day);
+                    const allDone = done === dt;
+                    const isCur = day === currentDay;
+                    const ac = day <= 48 ? "#10b981" : "#8b5cf6";
+                    return (React.createElement("div", { key: day, className: "dcard", style: { borderColor: isCur ? ac + "66" : allDone ? ac + "33" : "rgba(255,255,255,.08)" } },
+                        React.createElement("div", { className: "dhead", onClick: () => setOpenDay(openDay === day ? null : day) },
+                            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, flex: 1 } },
+                                React.createElement("div", null,
+                                    React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: isCur ? "#f59e0b" : "#e2e8f0" } },
+                                        "Day ",
+                                        day,
+                                        isCur && React.createElement("span", { style: { fontSize: 10, marginLeft: 6, color: "#f59e0b", background: "rgba(245,158,11,.15)", padding: "1px 6px", borderRadius: 10 } },
+                                            "\u2190 ",
+                                            lang === "ko" ? "진행중" : "Now")),
+                                    React.createElement("div", { style: { fontSize: 10, color: "#64748b", marginTop: 1 } },
+                                        items[0][lang === "ko" ? "ko" : "en"],
+                                        " ~ ",
+                                        items[items.length - 1][lang === "ko" ? "ko" : "en"]),
+                                    React.createElement("div", { style: { marginTop: 5 } },
+                                        React.createElement("div", { className: "pbar", style: { width: 160 } },
+                                            React.createElement("div", { className: "pfill", style: { width: ((done / dt) * 100) + "%", background: ac } })),
+                                        React.createElement("div", { style: { fontSize: 10, color: allDone ? ac : "#64748b", marginTop: 2 } },
+                                            done,
+                                            "/",
+                                            dt)))),
+                            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                                React.createElement("span", { style: { color: "#475569", fontSize: 11 } }, openDay === day ? "\u{25B2}" : "\u{25BC}"),
+                                React.createElement("div", { onClick: (e) => { e.stopPropagation(); toggleDay(day); }, style: {
+                                        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        background: allDone ? ac : "rgba(255,255,255,.06)",
+                                        border: allDone ? "none" : "2px solid rgba(255,255,255,.15)",
+                                        cursor: "pointer", fontSize: 20,
+                                    } }, allDone ? "\u{2713}" : ""))),
+                        openDay === day && (React.createElement("div", { style: { padding: "8px 12px 12px", background: "rgba(0,0,0,.18)" } }, items.map(item => (React.createElement("div", { key: item.seq, className: "row "+(checked[item.seq]?"done":""), onClick: () => toggle(item.seq) },
+                            React.createElement("div", { className: "chk "+(checked[item.seq]?"done":"") }, checked[item.seq] ? "\u{2713}" : ""),
+                            React.createElement("div", { style: { flex: 1 } },
+                                React.createElement("span", { style: { fontSize: 11, color: "#475569", marginRight: 7 } },
+                                    "#",
+                                    item.seq),
+                                React.createElement("span", { style: { fontSize: 13, color: checked[item.seq] ? "#6ee7b7" : "#e2e8f0", textDecoration: checked[item.seq] ? "line-through" : "none", textDecorationColor: "#10b981" } }, item[lang === "ko" ? "ko" : "en"])))))))));
+                }))),
+            view === "map" && (React.createElement(MosaicMap, { checked: checked, doneCount: doneCount, total: total, pct: pct, currentDay: currentDay, days: days, dayStats: dayStats, lang: lang, setView: setView, setOpenDay: setOpenDay })),
+            view === "cal" && (React.createElement("div", null,
+                React.createElement("div", { style: { background: "rgba(255,255,255,.03)", borderRadius: 12, padding: 16, marginBottom: 12 } },
+                    React.createElement("div", { style: { textAlign: "center", fontSize: 14, fontWeight: 700, marginBottom: 12, color: "#e2e8f0" } }, lang === "ko" ? MO_KO[mo]+" "+yr : MO_EN[mo]+" "+yr),
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 6 } }, (lang === "ko" ? ["일", "월", "화", "수", "목", "금", "토"] : ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]).map(d => (React.createElement("div", { key: d, style: { textAlign: "center", fontSize: 10, color: "#475569", padding: "3px 0" } }, d)))),
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 } },
+                        Array.from({ length: firstDow }).map((_, i) => React.createElement("div", { key: "e"+i })),
+                        Array.from({ length: daysInMo }).map((_, i) => {
+                            const d = i + 1;
+                            const ds = yr+"-"+String(mo+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+                            const isT = ds === today, wasR = readDates.includes(ds);
+                            return (React.createElement("div", { key: d, style: { aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", fontSize: 12, fontWeight: isT || wasR ? 700 : 400, background: wasR ? "rgba(16,185,129,.3)" : isT ? "rgba(245,158,11,.2)" : "transparent", color: wasR ? "#6ee7b7" : isT ? "#f59e0b" : "#94a3b8", border: isT ? "1px solid rgba(245,158,11,.5)" : "1px solid transparent" } }, d));
+                        }))),
+                React.createElement("div", { style: { display: "flex", gap: 10, marginBottom: 12 } }, [[lang === "ko" ? "읽은 날" : "Read", "rgba(16,185,129,.3)", "#6ee7b7"], [lang === "ko" ? "오늘" : "Today", "rgba(245,158,11,.2)", "#f59e0b"]].map(([l, bg, c]) => (React.createElement("div", { key: l, style: { display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" } },
+                    React.createElement("div", { style: { width: 13, height: 13, borderRadius: "50%", background: bg, border: "1px solid "+c+"55" } }),
+                    l)))),
+                React.createElement("div", { style: { padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,.03)", textAlign: "center" } },
+                    React.createElement("div", { style: { fontSize: 28, fontWeight: 700, color: "#10b981" } }, readDates.length),
+                    React.createElement("div", { style: { fontSize: 12, color: "#64748b" } }, lang === "ko" ? "총 읽은 날수" : "Total days read")))),
+            view === "community" && React.createElement(CommunityTab, { lang: lang, nickname: nickname, setNickname: setNickname, T: T }))));
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(BibleTracker));
+</script>
+</body>
+</html>
